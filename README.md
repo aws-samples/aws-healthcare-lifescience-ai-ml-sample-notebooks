@@ -49,7 +49,7 @@ The notebooks provided within these workshops are independent units and may be r
 
 **What is the source of these workshops?**
 
-Some of these workshops have been created by HCLS AI/ML team has written specific workshops that we believe demonstrate key components of using SageMaker. We have also curated resources from the [AWS machine learning blog](https://aws.amazon.com/blogs/machine-learning/) and the Amazon SageMaker [respository](https://github.com/aws/amazon-sagemaker-examples) of sample code for these workshops.
+Some of these workshops have been created by HCLS AI/ML team has written specific workshops that demonstrate key components of using SageMaker. We have also curated resources from the [AWS machine learning blog](https://aws.amazon.com/blogs/machine-learning/) and the Amazon SageMaker [respository](https://github.com/aws/amazon-sagemaker-examples) of sample code for these workshops.
 
 **I am interested in workshops not listed on this repository.**
 
@@ -57,7 +57,7 @@ The workshops for the HCLS AI/ML listed are generally focused on applications re
 
 **I see a mistake or something I want changed in the repository**
 
-Feel free to to submit a pull request detailing the issue. Please bear with us in the short-term if pull requests take longer than expected or are closed. 
+Feel free to to submit a pull request detailing the issue. Please bear with us in if pull requests take longer than expected or are closed. 
 
 **How can I arrange an AWS Instructur-Led Immersion Day?**
 
