@@ -55,7 +55,7 @@ Some of these workshops have been created by HCLS AI/ML team has written specifi
 
 The workshops for the HCLS AI/ML listed are generally focused on applications related to Health and Life Sciences. However, there is a wealth of more general information and public facing AWS provided notebooks that use non-HCLS data [here](https://github.com/awslabs/amazon-sagemaker-examples) and [here](https://sagemaker-immersionday.workshop.aws/). 
 
-**I see a mistake or something I want changed in the repository**
+**I think I see a mistake or something I want changed in the repository**.
 
 Feel free to to submit a pull request detailing the issue. Please bear with us in if pull requests take longer than expected or are closed. 
 
