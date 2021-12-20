@@ -1,4 +1,4 @@
-G# Healthcare and Life Sciences SageMaker and AI/ML Immersion Day Workshops
+# Healthcare and Life Sciences SageMaker and AI/ML Immersion Day Workshops
 
 ## Introduction
 
