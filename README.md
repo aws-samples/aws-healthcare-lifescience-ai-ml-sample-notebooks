@@ -59,7 +59,7 @@ The workshops for the HCLS AI/ML listed are generally focused on applications re
 
 Feel free to to submit a pull request detailing the issue. Please bear with us in if pull requests take longer than expected or are closed. 
 
-**How can I arrange an AWS Instructur-Led Immersion Day?**
+**How can I arrange an AWS Instructor-Led Immersion Day?**
 
 If you are interested in having an Immersion Day for your team, please reach out to your AWS Account Manager.
 
