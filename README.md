@@ -25,7 +25,7 @@ The Immersion Day workshops may be used by in the context of [AWS Instructure-Le
 
 Absolutely not! These workshops can benefit people at all levels, whether they are machine learning experts, developers, managers, or anyone in your organization. [Amazon SageMaker](https://aws.amazon.com/sagemaker/) and Amazon's [many other machine learning services](https://aws.amazon.com/machine-learning/) are designed to remove the heavy lifting from development to quickly enable you to integrate AI/ML into your applications.
 
-**How Can I get started?**
+**How can I get started?**
 
 You can peruse this repository for notebooks that are relevant to you. 
 
