@@ -1,0 +1,4 @@
+sagemaker==2.68.0
+transformers==4.12.2
+tensorflow==2.5.0
+seaborn==0.11.2
