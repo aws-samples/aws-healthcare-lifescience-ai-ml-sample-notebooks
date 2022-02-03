@@ -22,8 +22,17 @@ if __name__ == "__main__":
 
     DATA_DIR = os.path.join(args.local_path, "input")
     print(f"Data directory is {DATA_DIR}")
+        
+    # Get TCGA BRCA Gene Expression Data
+    os.system(f"wget https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/HiSeqV2_PANCAN.gz -nc -nv -P {DATA_DIR}/")
+    os.system(f"gzip -df {DATA_DIR}/HiSeqV2_PANCAN.gz")
+
+    # Get TCGA BRCA Phenotype Data
+    os.system(f"wget https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/BRCA_clinicalMatrix -nc -nv -P {DATA_DIR}/")
 
     ### Load Gene Expression RNA-seq
+    print(os.listdir(DATA_DIR))
+    print(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"))
     genom = pd.read_csv(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"), sep="\t")
     genom_identifiers = genom["sample"].values.tolist()
 
@@ -58,19 +67,14 @@ if __name__ == "__main__":
     df = df.dropna()
 
     ### Train-Valid-Test split
-    # Hold out 20% of the data for testing
-    train_df, test_df = train_test_split(df, test_size=args.train_test_split_ratio)
-    # Hold out an additional 20% of the training data for validaton
-    train_df, val_df = train_test_split(train_df, test_size=args.train_test_split_ratio)
+    # Hold out 20% of the data for validation
+    train_df, val_df = train_test_split(df, test_size=args.train_test_split_ratio)
 
     print(
         f"The training data has {train_df.shape[0]} records and {train_df.shape[1]} columns."
     )
     print(
         f"The validation data has {val_df.shape[0]} records and {val_df.shape[1]} columns."
-    )
-    print(
-        f"The test data has {test_df.shape[0]} records and {test_df.shape[1]} columns."
     )
 
     # Save data
@@ -83,8 +87,3 @@ if __name__ == "__main__":
     val_output_path = os.path.join(args.local_path, "output/val/val.csv")
     val_df.to_csv(val_output_path, header=False, index=False)
     print(f"Validation data saved to {val_output_path}")
-
-    os.makedirs(os.path.join(args.local_path, "output/test"), exist_ok=True)
-    test_output_path = os.path.join(args.local_path, "output/test/test.csv")
-    test_df.to_csv(test_output_path, header=False, index=False)
-    print(f"Test data saved to {test_output_path}")
