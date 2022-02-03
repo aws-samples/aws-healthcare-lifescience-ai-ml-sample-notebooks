@@ -118,13 +118,13 @@ if __name__ == "__main__":
     logging.info("Evaluating model")
     results = evals_result
     for epoch, value in enumerate(results["train"]["error"]):
-        logging.info(f"Epoch {epoch} Train Value {value}")
+#         logging.info(f"Epoch {epoch} Train Value {value}")
         my_tracker.log_metric(
             metric_name="train:error", value=value, iteration_number=epoch
         )
 
     for epoch, value in enumerate(results["validation"]["error"]):
-        logging.info(f"Epoch {epoch} Validation Value {value}")
+#         logging.info(f"Epoch {epoch} Validation Value {value}")
         my_tracker.log_metric(
             metric_name="validation:error", value=value, iteration_number=epoch
         )
