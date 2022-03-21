@@ -1,6 +1,0 @@
-.DS_Store
-.ipynb_checkpoints
-.idea/
-**.bin**
-generated/
-*.csv
