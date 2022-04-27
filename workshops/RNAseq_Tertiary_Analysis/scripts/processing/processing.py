@@ -10,7 +10,11 @@ def _parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--train_test_split_ratio", type=float, default=0.2)
+    parser.add_argument("--gene_count", type=int, default=10000)
     parser.add_argument("--local_path", type=str, default="/opt/ml/processing")
+    parser.add_argument("--hiseq_url", type=str, default="https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/HiSeqV2_PANCAN.gz")
+    parser.add_argument("--brca_clinical_matrix_url", type=str, default="https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/BRCA_clinicalMatrix")
+    parser.add_argument("--create_test_data", default=False, action="store_true")
 
     return parser.parse_known_args()
 
@@ -24,16 +28,17 @@ if __name__ == "__main__":
     print(f"Data directory is {DATA_DIR}")
         
     # Get TCGA BRCA Gene Expression Data
-    os.system(f"wget https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/HiSeqV2_PANCAN.gz -nc -nv -P {DATA_DIR}/")
+    os.system(f"wget {args.hiseq_url} -nc -nv -P {DATA_DIR}/")
     os.system(f"gzip -df {DATA_DIR}/HiSeqV2_PANCAN.gz")
 
     # Get TCGA BRCA Phenotype Data
-    os.system(f"wget https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/BRCA_clinicalMatrix -nc -nv -P {DATA_DIR}/")
+    os.system(f"wget {args.brca_clinical_matrix_url} -nc -nv -P {DATA_DIR}/")
 
     ### Load Gene Expression RNA-seq
     print(os.listdir(DATA_DIR))
     print(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"))
     genom = pd.read_csv(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"), sep="\t")
+    genom = genom[:args.gene_count]
     genom_identifiers = genom["sample"].values.tolist()
 
     ### Load Phenotypes
@@ -76,7 +81,14 @@ if __name__ == "__main__":
     print(
         f"The validation data has {val_df.shape[0]} records and {val_df.shape[1]} columns."
     )
-
+    
+    if args.create_test_data:
+        # Split val_df into val and test sets
+        test_df, val_df = train_test_split(val_df, test_size=0.5)
+        print(
+            f"The test data has {test_df.shape[0]} records and {test_df.shape[1]} columns."
+        )  
+    
     # Save data
     os.makedirs(os.path.join(args.local_path, "output/train"), exist_ok=True)
     training_output_path = os.path.join(args.local_path, "output/train/train.csv")
@@ -87,3 +99,9 @@ if __name__ == "__main__":
     val_output_path = os.path.join(args.local_path, "output/val/val.csv")
     val_df.to_csv(val_output_path, header=False, index=False)
     print(f"Validation data saved to {val_output_path}")
+
+    if args.create_test_data:   
+        os.makedirs(os.path.join(args.local_path, "output/test"), exist_ok=True)
+        test_output_path = os.path.join(args.local_path, "output/test/test.csv")
+        test_df.to_csv(test_output_path, header=False, index=False)
+        print(f"Test data saved to {test_output_path}")

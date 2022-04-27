@@ -32,6 +32,7 @@ def _parse_args():
     parser.add_argument("--gamma", type=int, default=0)
     parser.add_argument("--alpha", type=int, default=0)
     parser.add_argument("--min_child_weight", type=int, default=1)
+    parser.add_argument("--scale_pos_weight", type=float, default=1)    
     parser.add_argument("--subsample", type=float, default=1)
     parser.add_argument("--verbosity", type=int, default=1)
     parser.add_argument("--objective", type=str, default="binary:logistic")
@@ -67,24 +68,28 @@ if __name__ == "__main__":
     logging.info(args)
 
     logging.info("Preparing data")
-    with open(os.path.join(args.train, args.train_file), "rb") as file:
+    train_data_path = os.path.join(args.train, args.train_file)
+    with open(train_data_path, "rb") as file:
         train_np = np.loadtxt(file, delimiter=",")
     train_labels = train_np[:, 0]
     train_np = train_np[:, 1:]
-
-    with open(os.path.join(args.validation, args.validation_file), "rb") as file:
-        validation_np = np.loadtxt(file, delimiter=",")
-    validation_labels = validation_np[:, 0]
-    validation_np = validation_np[:, 1:]
-
-    with open(os.path.join(args.test, args.test_file), "rb") as file:
-        test_np = np.loadtxt(file, delimiter=",")
-    test_labels = test_np[:, 0]
-    test_np = test_np[:, 1:]
-
     dtrain = xgb.DMatrix(data=train_np, label=train_labels)
-    dval = xgb.DMatrix(data=validation_np, label=validation_labels)
-    dtest = xgb.DMatrix(data=test_np, label=test_labels)
+
+    if args.validation is not None:
+        validation_data_path = os.path.join(args.validation, args.validation_file)
+        with open(validation_data_path, "rb") as file:
+            validation_np = np.loadtxt(file, delimiter=",")
+        validation_labels = validation_np[:, 0]
+        validation_np = validation_np[:, 1:]
+        dval = xgb.DMatrix(data=validation_np, label=validation_labels)        
+
+    if args.test is not None:
+        test_data_path = os.path.join(args.test, args.test_file)
+        with open(test_data_path, "rb") as file:
+            test_np = np.loadtxt(file, delimiter=",")
+        test_labels = test_np[:, 0]
+        test_np = test_np[:, 1:]    
+        dtest = xgb.DMatrix(data=test_np, label=test_labels)
 
     logging.info("Training model")
         
@@ -100,6 +105,7 @@ if __name__ == "__main__":
         "verbosity": args.verbosity,
         "tree_method": args.tree_method,
         "predictor": args.predictor,
+        "scale_pos_weight": args.scale_pos_weight,
     }
 
     evals_result = {}
@@ -118,30 +124,37 @@ if __name__ == "__main__":
     logging.info("Evaluating model")
     results = evals_result
     for epoch, value in enumerate(results["train"]["error"]):
-#         logging.info(f"Epoch {epoch} Train Value {value}")
         my_tracker.log_metric(
             metric_name="train:error", value=value, iteration_number=epoch
         )
 
-    for epoch, value in enumerate(results["validation"]["error"]):
-#         logging.info(f"Epoch {epoch} Validation Value {value}")
-        my_tracker.log_metric(
-            metric_name="validation:error", value=value, iteration_number=epoch
-        )
+    if args.validation is not None:
+        for epoch, value in enumerate(results["validation"]["error"]):
+            my_tracker.log_metric(
+                metric_name="validation:error", value=value, iteration_number=epoch
+            )
 
-    test_predictions = booster.predict(dtest)
-
-    accuracy = accuracy_score(test_labels, np.rint(test_predictions))
-    my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
-
-    precision = precision_score(test_labels, np.rint(test_predictions))
-    my_tracker.log_metric(metric_name="test:precision", value=precision)
-
-    f1 = f1_score(test_labels, np.rint(test_predictions))
-    my_tracker.log_metric(metric_name="test:f1", value=f1)
-
-    logging.info(f"Accuracy: {accuracy:.2f}")
-    logging.info(f"Precision: {precision:.2f}")
-    logging.info(f"F1 Score: {f1:.2f}")
+        validation_predictions = booster.predict(dval)
+        accuracy = accuracy_score(validation_labels, np.rint(validation_predictions))
+        my_tracker.log_metric(metric_name="validation:accuracy", value=accuracy)
+        precision = precision_score(validation_labels, np.rint(validation_predictions))
+        my_tracker.log_metric(metric_name="validation:precision", value=precision)
+        f1 = f1_score(validation_labels, np.rint(validation_predictions))
+        my_tracker.log_metric(metric_name="validation:f1", value=f1)
+        logging.info(f"Validation Accuracy: {accuracy:.2f}")
+        logging.info(f"Validation Precision: {precision:.2f}")
+        logging.info(f"Validation F1 Score: {f1:.2f}")    
+        
+    if args.test is not None:        
+        test_predictions = booster.predict(dtest)
+        accuracy = accuracy_score(test_labels, np.rint(test_predictions))
+        my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
+        precision = precision_score(test_labels, np.rint(test_predictions))
+        my_tracker.log_metric(metric_name="test:precision", value=precision)
+        f1 = f1_score(test_labels, np.rint(test_predictions))
+        my_tracker.log_metric(metric_name="test:f1", value=f1)
+        logging.info(f"Test Accuracy: {accuracy:.2f}")
+        logging.info(f"Test Precision: {precision:.2f}")
+        logging.info(f"Test F1 Score: {f1:.2f}")  
 
     my_tracker.close()
