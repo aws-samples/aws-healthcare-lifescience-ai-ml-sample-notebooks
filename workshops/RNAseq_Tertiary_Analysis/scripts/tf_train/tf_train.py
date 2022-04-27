@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_score, f1_score
 from smexperiments.tracker import Tracker
-
+import logging
 import tensorflow as tf
 from tensorflow.python.keras.utils.np_utils import to_categorical
 from tensorflow.keras.layers import (
@@ -19,14 +19,14 @@ from tensorflow.keras.layers import (
 )
 
 
-def binary_mlp(metrics, output_bias=None):
+def binary_mlp(metrics, input_sample_count=10000, output_bias=None):
     ### Setup loss and output node activation
 
     output_activation = "sigmoid"
     loss = tf.keras.losses.BinaryCrossentropy()  # from_logits=True
 
     ### Gene Expression Encoder
-    genom_input = Input(shape=(20530,), name="genom_input")
+    genom_input = Input(shape=(input_sample_count,), name="genom_input")
     genom_layer = Dense(
         units=64,
         kernel_regularizer=tf.keras.regularizers.l2(0.001),
@@ -89,6 +89,8 @@ def _parse_args():
     parser.add_argument("--test-file", type=str, default="test.csv")
 
     parser.add_argument("--target", type=str, default="target")
+    parser.add_argument("--input_sample_count", type=int, default="20000")
+
 
     args, _ = parser.parse_known_args()
 
@@ -102,25 +104,30 @@ if __name__ == "__main__":
     except ValueError:
         my_tracker = Tracker.create()
 
-    print("extracting arguments")
+    logging.info("extracting arguments")
     args, _ = _parse_args()
-    print(args)
+    logging.info(args)
 
-    print("Preparing data")
-    with open(os.path.join(args.train, args.train_file), "rb") as file:
+    logging.info("Preparing data")
+    train_data_path = os.path.join(args.train, args.train_file)
+    with open(train_data_path, "rb") as file:
         train_np = np.loadtxt(file, delimiter=",")
     train_labels = train_np[:, 0]
     train_np = train_np[:, 1:]
 
-    with open(os.path.join(args.validation, args.validation_file), "rb") as file:
-        validation_np = np.loadtxt(file, delimiter=",")
-    validation_labels = validation_np[:, 0]
-    validation_np = validation_np[:, 1:]
+    if args.validation is not None:
+        validation_data_path = os.path.join(args.validation, args.validation_file)
+        with open(validation_data_path, "rb") as file:
+            validation_np = np.loadtxt(file, delimiter=",")
+        validation_labels = validation_np[:, 0]
+        validation_np = validation_np[:, 1:]
 
-    with open(os.path.join(args.test, args.test_file), "rb") as file:
-        test_np = np.loadtxt(file, delimiter=",")
-    test_labels = test_np[:, 0]
-    test_np = test_np[:, 1:]
+    if args.test is not None:
+        test_data_path = os.path.join(args.test, args.test_file)
+        with open(test_data_path, "rb") as file:
+            test_np = np.loadtxt(file, delimiter=",")
+        test_labels = test_np[:, 0]
+        test_np = test_np[:, 1:]    
 
     EPOCHS = 150
     BATCH_SIZE = 32
@@ -134,7 +141,7 @@ if __name__ == "__main__":
     )
 
     # Instantiate classifier
-    classifier = binary_mlp(metrics=["accuracy", "binary_accuracy"], output_bias=None)
+    classifier = binary_mlp(metrics=["accuracy", "binary_accuracy"], input_sample_count=args.input_sample_count)
 
     # Fit classifier
     history = classifier.fit(
@@ -147,36 +154,48 @@ if __name__ == "__main__":
         verbose=1,
     )
 
-    print("Evaluating model")
+    logging.info("Evaluating model")
     for epoch, value in enumerate(history.history["loss"]):
         my_tracker.log_metric(
             metric_name="train:loss", value=value, iteration_number=epoch
         )
 
-    for epoch, value in enumerate(history.history["val_loss"]):
-        my_tracker.log_metric(
-            metric_name="validation:loss", value=value, iteration_number=epoch
-        )
+    if args.validation is not None:
+        for epoch, value in enumerate(history.history["val_loss"]):
+            my_tracker.log_metric(
+                metric_name="validation:loss", value=value, iteration_number=epoch
+            )
 
-    # evaluate test data
-    test_predictions = classifier(test_np)
-    discrete_predictions = np.around(test_predictions).astype(int)
+        # evaluate validation data
+        validation_predictions = classifier(validation_np)
+        discrete_predictions = np.around(validation_predictions).astype(int)
+        accuracy = accuracy_score(validation_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="validation:accuracy", value=accuracy)
+        precision = precision_score(validation_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="validation:precision", value=precision)
+        f1 = f1_score(validation_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="validation:f1", value=f1)
+        logging.info(f"Validation Accuracy: {accuracy:.2f}")
+        logging.info(f"Validation Precision: {precision:.2f}")
+        logging.info(f"Validation F1 Score: {f1:.2f}")
 
-    accuracy = accuracy_score(test_labels, discrete_predictions)
-    my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
-
-    precision = precision_score(test_labels, discrete_predictions)
-    my_tracker.log_metric(metric_name="test:precision", value=precision)
-
-    f1 = f1_score(test_labels, discrete_predictions)
-    my_tracker.log_metric(metric_name="test:f1", value=f1)
-
-    print(f"Accuracy: {accuracy:.2f}")
-    print(f"Precision: {precision:.2f}")
-    print(f"F1 Score: {f1:.2f}")
+    
+    if args.test is not None:
+        # evaluate test data
+        test_predictions = classifier(test_np)
+        discrete_predictions = np.around(test_predictions).astype(int)
+        accuracy = accuracy_score(test_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
+        precision = precision_score(test_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="test:precision", value=precision)
+        f1 = f1_score(test_labels, discrete_predictions)
+        my_tracker.log_metric(metric_name="test:f1", value=f1)
+        logging.info(f"Test Accuracy: {accuracy:.2f}")
+        logging.info(f"Test Precision: {precision:.2f}")
+        logging.info(f"Test F1 Score: {f1:.2f}")
 
     my_tracker.close()
 
-    print("Saving model")
+    logging.info("Saving model")
     classifier.save(args.model_dir)
-    print(f"Model saved to {args.model_dir}")
+    logging.info(f"Model saved to {args.model_dir}")
