@@ -1,3 +1,6 @@
 [submodule "workshops/MONAI-MedicalImage-SageMaker"]
 	path = workshops/Medical_Imaging_AI/Advanced_MONAI_Workshops/MONAI-MedicalImage-SageMaker
 	url = https://github.com/YuanSingapore/MONAI-MedicalImage-SageMaker.git
+[submodule "workshops/Enrich_Comprehend_Medical_Custom_Models/amazon-comprehend-medical-enrich-custom-models"]
+	path = workshops/Enrich_Comprehend_Medical_Custom_Models/amazon-comprehend-medical-enrich-custom-models
+	url = https://github.com/aws-samples/amazon-comprehend-medical-enrich-custom-models.git
