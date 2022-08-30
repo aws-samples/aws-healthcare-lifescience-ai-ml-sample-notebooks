@@ -4,3 +4,12 @@
 [submodule "workshops/Enrich_Comprehend_Medical_Custom_Models/amazon-comprehend-medical-enrich-custom-models"]
 	path = workshops/Enrich_Comprehend_Medical_Custom_Models/amazon-comprehend-medical-enrich-custom-models
 	url = https://github.com/aws-samples/amazon-comprehend-medical-enrich-custom-models.git
+[submodule "workshops/Medical_Sentence_Relevance_Pretrained_Bert/medical-text-sentence-relevance-bert"]
+	path = workshops/Medical_Sentence_Relevance_Pretrained_Bert/medical-text-sentence-relevance-bert
+	url = https://github.com/aws-samples/medical-text-sentence-relevance-bert
+[submodule "workshops/Monte_Carlo_Simulations_RStudio/amazon-sagemaker-statistical-simulation-rstudio"]
+	path = workshops/Monte_Carlo_Simulations_RStudio/amazon-sagemaker-statistical-simulation-rstudio
+	url = https://github.com/aws-samples/amazon-sagemaker-statistical-simulation-rstudio
+[submodule "workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage"]
+	path = workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage
+	url = https://github.com/aws-samples/amazon-sagemaker-predict-training-resource-usage
