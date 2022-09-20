@@ -25,7 +25,8 @@ AWS technical teams have developed solutions to common protein structure problem
 ![MSA-Based Structure Prediction](img/msa-based_structure_prediction.jpg)
 | Project            | Solution          |
 | ------------------ | ----------------- |
-| RoseTTAFold        | [AWS Batch](https://github.com/aws-samples/aws-rosettafold)         |
+| AlphaFold          | [EC2](https://aws.amazon.com/blogs/machine-learning/run-alphafold-v2-0-on-amazon-ec2/)         |
 | AlphaFold          | [AWS Batch](https://github.com/aws-samples/aws-batch-arch-for-protein-folding)         |
 | AlphaFold-Multimer | [AWS Batch](https://github.com/aws-samples/aws-batch-arch-for-protein-folding)         |
 | OpenFold           | [AWS Batch](https://github.com/aws-samples/aws-batch-arch-for-protein-folding)         |
+| RoseTTAFold        | [AWS Batch](https://github.com/aws-samples/aws-rosettafold)         |
