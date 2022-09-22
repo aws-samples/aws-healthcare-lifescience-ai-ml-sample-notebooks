@@ -1,7 +1,0 @@
-**/.ipynb_checkpoints/**
-**/data/test
-**/data/validation
-**/data/train
-**/__pycache__/**
-**/data/train_data.csv
-**/data/validation_data.csv
