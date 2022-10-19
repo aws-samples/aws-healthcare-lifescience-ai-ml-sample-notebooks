@@ -13,3 +13,6 @@
 [submodule "workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage"]
 	path = workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage
 	url = https://github.com/aws-samples/amazon-sagemaker-predict-training-resource-usage
+[submodule "solutions/aws-healthcare-lifescience-ai-ml-sample-notebooks"]
+	path = solutions/aws-healthcare-lifescience-ai-ml-sample-notebooks
+	url = https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks.git
