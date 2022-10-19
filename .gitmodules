@@ -13,6 +13,3 @@
 [submodule "workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage"]
 	path = workshops/Predict_Training_Resource_Usage_SageMaker/amazon-sagemaker-predict-training-resource-usage
 	url = https://github.com/aws-samples/amazon-sagemaker-predict-training-resource-usage
-[submodule "solutions/aws-batch-arch-for-protein-folding"]
-	path = solutions/aws-batch-arch-for-protein-folding
-	url = https://github.com/aws-samples/aws-batch-arch-for-protein-folding
