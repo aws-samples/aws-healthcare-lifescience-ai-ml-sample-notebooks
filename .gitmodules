@@ -16,3 +16,6 @@
 [submodule "solutions/aws-healthcare-lifescience-ai-ml-sample-notebooks"]
 	path = solutions/aws-healthcare-lifescience-ai-ml-sample-notebooks
 	url = https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks.git
+[submodule "solutions/awesome-proteomics-on-aws"]
+	path = solutions/awesome-proteomics-on-aws
+	url = https://github.com/aws-samples/awesome-proteomics-on-aws
