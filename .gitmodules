@@ -19,3 +19,9 @@
 [submodule "solutions/awesome-proteomics-on-aws"]
 	path = solutions/awesome-proteomics-on-aws
 	url = https://github.com/aws-samples/awesome-proteomics-on-aws
+[submodule "solutions/aws-batch-architecture-for-rfdesign"]
+	path = solutions/aws-batch-architecture-for-rfdesign
+	url = https://github.com/aws-samples/aws-batch-architecture-for-rfdesign.git
+[submodule "solutions/awesome-protein-analysis-on-aws"]
+	path = solutions/awesome-protein-analysis-on-aws
+	url = https://github.com/aws-samples/awesome-protein-analysis-on-aws.git
