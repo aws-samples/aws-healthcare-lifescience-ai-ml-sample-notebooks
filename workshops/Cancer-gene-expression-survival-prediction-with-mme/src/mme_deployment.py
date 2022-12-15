@@ -1,9 +1,9 @@
 import boto3
 import os
 
-sm_client = boto3.client("sagemaker", region_name ="us-west-2")
-s3_client = boto3.client("s3", region_name ="us-west-2")
-s3_resource = boto3.resource("s3", region_name="us-west-2")
+sm_client = boto3.client("sagemaker")
+s3_client = boto3.client("s3")
+s3_resource = boto3.resource("s3")
 
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])

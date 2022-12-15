@@ -125,9 +125,7 @@ def get_pipeline(
     # Define Parameters for pipeline execution
     ####################################################    
     processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
-    processing_instance_type = ParameterString(
-        name="ProcessingInstanceType", default_value="ml.m5.xlarge"
-    )
+
     
     processing_hiseq_uri = ParameterString(name="HiSeqDataURL", default_value="https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/HiSeqV2_PANCAN.gz")
     processing_brca_clinical_matrix_uri = ParameterString(name="BRCAClinicalMatrixURL", default_value="https://tcga.xenahubs.net/download/TCGA.BRCA.sampleMap/BRCA_clinicalMatrix")
@@ -139,20 +137,26 @@ def get_pipeline(
     training_max_depth = ParameterInteger(name="MaxDepth", default_value=3)
     training_scale_pos_weight = ParameterFloat(name="ScalePosWeight", default_value=9.0)
     training_subsample = ParameterFloat(name="Subsample", default_value=0.9)
-    training_instance_type = ParameterString(name="TrainingInstanceType", default_value="ml.m5.xlarge")
     test_accuracy_threshold = ParameterFloat(name="testAccuracy", default_value=0.8)
 
     registration_model_approval_status = ParameterString(
         name="ModelApprovalStatus", default_value="PendingManualApproval"
     )
+    
+    ####################################################
+    # Define Instance Types
+    ####################################################    
+
+    processing_instance_type = "ml.m5.xlarge"
+    training_instance_type = "ml.m5.xlarge"
 
     ####################################################
     # Define Data Processing Step
     ####################################################    
     sklearn_processor = SKLearnProcessor(
         framework_version="0.23-1",
-        instance_type=processing_instance_type,
-        instance_count=processing_instance_count,
+        instance_type="ml.m5.xlarge",
+        instance_count=1,
         base_job_name=f"{base_job_prefix}/her2-preprocess",
         sagemaker_session=sagemaker_session,
         role=role,
@@ -317,7 +321,6 @@ def get_pipeline(
         name=pipeline_name,
         parameters=[
             processing_instance_count,
-            processing_instance_type,
             processing_hiseq_uri,
             processing_brca_clinical_matrix_uri,
             processing_train_test_split_ratio,
@@ -326,8 +329,7 @@ def get_pipeline(
             training_num_round,
             training_max_depth,
             training_scale_pos_weight,
-            training_subsample,            
-            training_instance_type,
+            training_subsample,
             test_accuracy_threshold,
             registration_model_approval_status,
         ],
