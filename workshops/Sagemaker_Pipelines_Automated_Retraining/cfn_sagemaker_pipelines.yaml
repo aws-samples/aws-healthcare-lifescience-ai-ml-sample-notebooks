@@ -34,7 +34,7 @@ Resources:
         S3Key: !Ref StaticCodeKey
       Handler: kick_off_pipeline_lambda.lambda_handler
       Role: !GetAtt LambdaIAMRole.Arn
-      Runtime: python3.6
+      Runtime: python3.9
       Timeout: 300
       MemorySize: 128
       Environment:
@@ -118,7 +118,7 @@ Resources:
                 print("Delete request completed....")
 
 
-      Runtime: python3.6
+      Runtime: python3.9
       Timeout: 500
       MemorySize: 1000
 
