@@ -7,7 +7,10 @@ import os
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import boto3
+from urllib.parse import urlparse
 
+s3 = boto3.resource('s3')
 
 class BoundingBox:
     '''Bounding box for an object in an image.'''
@@ -106,7 +109,8 @@ class BoxedImage:
         target_fname = os.path.join(
             directory, self.uri.split('/')[-1])
         if not os.path.isfile(target_fname):
-            os.system(f'aws s3 cp {self.uri} {target_fname}')
+            parsed_uri = urlparse(self.uri)
+            s3.meta.client.download_file(parsed_uri.netloc, parsed_uri.path, target_fname)
         self.local = target_fname
 
     def imread(self):
