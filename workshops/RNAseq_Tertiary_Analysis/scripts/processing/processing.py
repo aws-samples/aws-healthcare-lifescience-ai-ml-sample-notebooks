@@ -4,6 +4,12 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+import boto3
+from sagemaker.session import Session
+from sagemaker.experiments.run import Run, load_run
+
+boto_session = boto3.session.Session(region_name=os.environ["AWS_REGION"])
+sagemaker_session = Session(boto_session)
 
 def _parse_args():
 
@@ -18,31 +24,36 @@ def _parse_args():
 
     return parser.parse_known_args()
 
-
-if __name__ == "__main__":
+def main():
 
     ### Command line parser
     args, _ = _parse_args()
-
-    DATA_DIR = os.path.join(args.local_path, "input")
-    print(f"Data directory is {DATA_DIR}")
+    
+    with load_run(sagemaker_session=sagemaker_session) as run:
+        run.log_artifact(
+            name="hiseq_data_source", 
+            value=args.hiseq_url, 
+            is_output=False
+        )
+        run.log_artifact(
+            name="brca_clinical_data_source", 
+            value=args.brca_clinical_matrix_url, 
+            is_output=False
+        )
+        run.log_parameters(
+            {
+                "train_test_split_ratio": args.train_test_split_ratio,
+                "gene_count": args.gene_count,
+            }
+        )
         
-    # Get TCGA BRCA Gene Expression Data
-    os.system(f"wget {args.hiseq_url} -nc -nv -P {DATA_DIR}/")
-    os.system(f"gzip -df {DATA_DIR}/HiSeqV2_PANCAN.gz")
-
-    # Get TCGA BRCA Phenotype Data
-    os.system(f"wget {args.brca_clinical_matrix_url} -nc -nv -P {DATA_DIR}/")
-
-    ### Load Gene Expression RNA-seq
-    print(os.listdir(DATA_DIR))
-    print(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"))
-    genom = pd.read_csv(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"), sep="\t")
+    ### Load genotypes
+    genom = pd.read_csv(args.hiseq_url, compression='gzip', sep="\t")
     genom = genom[:args.gene_count]
     genom_identifiers = genom["sample"].values.tolist()
 
     ### Load Phenotypes
-    phenotypes = pd.read_csv(os.path.join(DATA_DIR, "BRCA_clinicalMatrix"), sep="\t")
+    phenotypes = pd.read_csv(args.brca_clinical_matrix_url, sep="\t")
 
     #### Keep `HER2_Final_Status_nature2012` target variables
     phenotypes_subset = phenotypes[
@@ -105,3 +116,6 @@ if __name__ == "__main__":
         test_output_path = os.path.join(args.local_path, "output/test/test.csv")
         test_df.to_csv(test_output_path, header=False, index=False)
         print(f"Test data saved to {test_output_path}")
+        
+if __name__ == "__main__":
+    main()

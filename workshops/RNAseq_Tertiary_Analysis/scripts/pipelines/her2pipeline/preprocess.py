@@ -24,25 +24,13 @@ if __name__ == "__main__":
     ### Command line parser
     args, _ = _parse_args()
 
-    DATA_DIR = os.path.join(args.local_path, "input")
-    print(f"Data directory is {DATA_DIR}")
-        
-    # Get TCGA BRCA Gene Expression Data
-    os.system(f"wget {args.hiseq_url} -nc -nv -P {DATA_DIR}/")
-    os.system(f"gzip -df {DATA_DIR}/HiSeqV2_PANCAN.gz")
-
-    # Get TCGA BRCA Phenotype Data
-    os.system(f"wget {args.brca_clinical_matrix_url} -nc -nv -P {DATA_DIR}/")
-
-    ### Load Gene Expression RNA-seq
-    print(os.listdir(DATA_DIR))
-    print(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"))
-    genom = pd.read_csv(os.path.join(DATA_DIR, "HiSeqV2_PANCAN"), sep="\t")
-    genom = genom[:int(args.gene_count)]
+    ### Load genotypes
+    genom = pd.read_csv(args.hiseq_url, compression='gzip', sep="\t")
+    genom = genom[:args.gene_count]
     genom_identifiers = genom["sample"].values.tolist()
 
     ### Load Phenotypes
-    phenotypes = pd.read_csv(os.path.join(DATA_DIR, "BRCA_clinicalMatrix"), sep="\t")
+    phenotypes = pd.read_csv(args.brca_clinical_matrix_url, sep="\t")
 
     #### Keep `HER2_Final_Status_nature2012` target variables
     phenotypes_subset = phenotypes[

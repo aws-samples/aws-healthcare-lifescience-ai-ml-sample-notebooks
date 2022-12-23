@@ -1,9 +1,11 @@
+import boto3
 import argparse
 import os
 import pandas as pd
 import numpy as np
+from sagemaker.experiments.run import Run, load_run
+from sagemaker.session import Session
 from sklearn.metrics import accuracy_score, precision_score, f1_score
-from smexperiments.tracker import Tracker
 import logging
 import tensorflow as tf
 from tensorflow.python.keras.utils.np_utils import to_categorical
@@ -18,10 +20,13 @@ from tensorflow.keras.layers import (
     concatenate,
 )
 
+boto_session = boto3.session.Session(region_name=os.environ["AWS_REGION"])
+sagemaker_session = Session(boto_session)
+
 
 def binary_mlp(metrics, input_sample_count=10000, output_bias=None):
+    
     ### Setup loss and output node activation
-
     output_activation = "sigmoid"
     loss = tf.keras.losses.BinaryCrossentropy()  # from_logits=True
 
@@ -33,16 +38,13 @@ def binary_mlp(metrics, input_sample_count=10000, output_bias=None):
         activation="relu",
         name="genom_layer1",
     )(genom_input)
-    # genom_layer = BatchNormalization(name = 'genom_layer1_normalized')(genom_layer)
     genom_layer = Dense(
         units=32,
         kernel_regularizer=tf.keras.regularizers.l2(0.001),
         activation="relu",
         name="genom_layer2",
     )(genom_layer)
-
     X = BatchNormalization(name="X_normalized")(genom_layer)
-
     X = Dense(
         units=32,
         activation="relu",
@@ -55,17 +57,48 @@ def binary_mlp(metrics, input_sample_count=10000, output_bias=None):
         kernel_regularizer=tf.keras.regularizers.l2(0.001),
         name="X2",
     )(X)
-
     output = Dense(units=1, activation=output_activation)(X)
 
     ### Compile the model
     model = tf.keras.Model(genom_input, output)
-
     model.compile(optimizer="adam", loss=loss, metrics=metrics)
 
     return model
 
 
+def report_metrics(run, classifier, labels, data, dataset_type="validation"):
+    """evaluate validation data"""
+    
+    predictions = classifier(data)
+    discrete_predictions = np.around(predictions).astype(int)
+    accuracy = accuracy_score(labels, discrete_predictions)
+
+    precision = precision_score(labels, discrete_predictions)
+    f1 = f1_score(labels, discrete_predictions)
+    run.log_metric(name=f"{dataset_type}:accuracy", value=accuracy)
+    run.log_metric(name=f"{dataset_type}:precision", value=precision)
+    run.log_metric(name=f"{dataset_type}:f1", value=f1)
+    
+    run.log_precision_recall(
+        labels, 
+        predictions,
+        title=f"{dataset_type}-tf-precision-recall"
+    )
+    run.log_roc_curve(
+        labels, 
+        predictions,
+        title=f"{dataset_type}-tf-roc-curve"
+    )
+    run.log_confusion_matrix(
+        labels, 
+        discrete_predictions,
+        title=f"{dataset_type}-tf-confusion-matrix"            
+    )
+
+    logging.info(f"{dataset_type.capitalize()} Accuracy: {accuracy:.2f}")
+    logging.info(f"{dataset_type.capitalize()} Precision: {precision:.2f}")
+    logging.info(f"{dataset_type.capitalize()} F1 Score: {f1:.2f}")
+    
 def _parse_args():
     """Parse job parameters."""
 
@@ -97,12 +130,7 @@ def _parse_args():
     return parser.parse_known_args()
 
 
-if __name__ == "__main__":
-
-    try:
-        my_tracker = Tracker.load()
-    except ValueError:
-        my_tracker = Tracker.create()
+def main():
 
     logging.info("extracting arguments")
     args, _ = _parse_args()
@@ -134,7 +162,7 @@ if __name__ == "__main__":
 
     EARLY_STOPPING = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss",
-        verbose=1,
+        verbose=2,
         patience=10,
         mode="auto",
         restore_best_weights=True,
@@ -155,47 +183,32 @@ if __name__ == "__main__":
     )
 
     logging.info("Evaluating model")
-    for epoch, value in enumerate(history.history["loss"]):
-        my_tracker.log_metric(
-            metric_name="train:loss", value=value, iteration_number=epoch
-        )
-
-    if args.validation is not None:
-        for epoch, value in enumerate(history.history["val_loss"]):
-            my_tracker.log_metric(
-                metric_name="validation:loss", value=value, iteration_number=epoch
+    with load_run(sagemaker_session=sagemaker_session) as run:
+        run.log_parameters({
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate
+        })
+    
+        for epoch, value in enumerate(history.history["loss"]):
+            run.log_metric(
+                name="train:loss", value=value, step=epoch
             )
 
-        # evaluate validation data
-        validation_predictions = classifier(validation_np)
-        discrete_predictions = np.around(validation_predictions).astype(int)
-        accuracy = accuracy_score(validation_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="validation:accuracy", value=accuracy)
-        precision = precision_score(validation_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="validation:precision", value=precision)
-        f1 = f1_score(validation_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="validation:f1", value=f1)
-        logging.info(f"Validation Accuracy: {accuracy:.2f}")
-        logging.info(f"Validation Precision: {precision:.2f}")
-        logging.info(f"Validation F1 Score: {f1:.2f}")
+        if args.validation is not None:
+            for epoch, value in enumerate(history.history["val_loss"]):
+                run.log_metric(
+                    name="validation:loss", value=value, step=epoch
+                )
+                
+            report_metrics(run, classifier, validation_labels, validation_np, "validation")
 
-    
-    if args.test is not None:
-        # evaluate test data
-        test_predictions = classifier(test_np)
-        discrete_predictions = np.around(test_predictions).astype(int)
-        accuracy = accuracy_score(test_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
-        precision = precision_score(test_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="test:precision", value=precision)
-        f1 = f1_score(test_labels, discrete_predictions)
-        my_tracker.log_metric(metric_name="test:f1", value=f1)
-        logging.info(f"Test Accuracy: {accuracy:.2f}")
-        logging.info(f"Test Precision: {precision:.2f}")
-        logging.info(f"Test F1 Score: {f1:.2f}")
-
-    my_tracker.close()
+        if args.test is not None:
+            report_metrics(run, classifier, test_labels, test_np, "test")
 
     logging.info("Saving model")
     classifier.save(args.model_dir)
     logging.info(f"Model saved to {args.model_dir}")
+
+if __name__ == "__main__":
+    main()

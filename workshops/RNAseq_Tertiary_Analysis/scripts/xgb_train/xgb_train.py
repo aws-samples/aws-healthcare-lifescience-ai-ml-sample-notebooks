@@ -1,14 +1,17 @@
 import argparse
-import json
+import boto3
 import logging
 import os
 import numpy as np
 import pandas as pd
 import pickle as pkl
 import xgboost as xgb
+from sagemaker.experiments.run import Run, load_run
+from sagemaker.session import Session
 from sklearn.metrics import accuracy_score, precision_score, f1_score
-from smexperiments.tracker import Tracker
 
+boto_session = boto3.session.Session(region_name=os.environ["AWS_REGION"])
+sagemaker_session = Session(boto_session)
 
 def model_fn(model_dir):
     """Deserialize and return fitted model.
@@ -19,6 +22,37 @@ def model_fn(model_dir):
     booster = pkl.load(open(os.path.join(model_dir, model_file), "rb"))
     return booster
 
+def report_metrics(run, booster, labels, data, dataset_type="validation"):
+    """evaluate validation data"""
+    
+    predictions = booster.predict(data)
+    discrete_predictions = np.rint(predictions)
+    accuracy = accuracy_score(labels, discrete_predictions)
+    precision = precision_score(labels, discrete_predictions)
+    f1 = f1_score(labels, discrete_predictions)
+    run.log_metric(name=f"{dataset_type}:accuracy", value=accuracy)
+    run.log_metric(name=f"{dataset_type}:precision", value=precision)
+    run.log_metric(name=f"{dataset_type}:f1", value=f1)
+    
+    run.log_precision_recall(
+        labels, 
+        predictions,
+        title=f"{dataset_type}-xgb-precision-recall"
+    )
+    run.log_roc_curve(
+        labels, 
+        predictions,
+        title=f"{dataset_type}-xgb-roc-curve"
+    )
+    run.log_confusion_matrix(
+        labels, 
+        discrete_predictions,
+        title=f"{dataset_type}-xgb-confusion-matrix"            
+    )
+
+    logging.info(f"{dataset_type.capitalize()} Accuracy: {accuracy:.2f}")
+    logging.info(f"{dataset_type.capitalize()} Precision: {precision:.2f}")
+    logging.info(f"{dataset_type.capitalize()} F1 Score: {f1:.2f}")
 
 def _parse_args():
     """Parse job parameters."""
@@ -57,11 +91,6 @@ def _parse_args():
 
 
 if __name__ == "__main__":
-
-    try:
-        my_tracker = Tracker.load()
-    except ValueError:
-        my_tracker = Tracker.create()
 
     logging.info("Extracting arguments")
     args, _ = _parse_args()
@@ -122,39 +151,23 @@ if __name__ == "__main__":
     logging.info("Stored trained model at {}".format(model_location))
 
     logging.info("Evaluating model")
-    results = evals_result
-    for epoch, value in enumerate(results["train"]["error"]):
-        my_tracker.log_metric(
-            metric_name="train:error", value=value, iteration_number=epoch
-        )
-
-    if args.validation is not None:
-        for epoch, value in enumerate(results["validation"]["error"]):
-            my_tracker.log_metric(
-                metric_name="validation:error", value=value, iteration_number=epoch
+    with load_run(sagemaker_session=sagemaker_session) as run:
+        run.log_parameters(hyper_params_dict)       
+    
+        results = evals_result
+        for epoch, value in enumerate(results["train"]["error"]):
+            run.log_metric(
+                name="train:error", value=value, step=epoch
             )
 
-        validation_predictions = booster.predict(dval)
-        accuracy = accuracy_score(validation_labels, np.rint(validation_predictions))
-        my_tracker.log_metric(metric_name="validation:accuracy", value=accuracy)
-        precision = precision_score(validation_labels, np.rint(validation_predictions))
-        my_tracker.log_metric(metric_name="validation:precision", value=precision)
-        f1 = f1_score(validation_labels, np.rint(validation_predictions))
-        my_tracker.log_metric(metric_name="validation:f1", value=f1)
-        logging.info(f"Validation Accuracy: {accuracy:.2f}")
-        logging.info(f"Validation Precision: {precision:.2f}")
-        logging.info(f"Validation F1 Score: {f1:.2f}")    
-        
-    if args.test is not None:        
-        test_predictions = booster.predict(dtest)
-        accuracy = accuracy_score(test_labels, np.rint(test_predictions))
-        my_tracker.log_metric(metric_name="test:accuracy", value=accuracy)
-        precision = precision_score(test_labels, np.rint(test_predictions))
-        my_tracker.log_metric(metric_name="test:precision", value=precision)
-        f1 = f1_score(test_labels, np.rint(test_predictions))
-        my_tracker.log_metric(metric_name="test:f1", value=f1)
-        logging.info(f"Test Accuracy: {accuracy:.2f}")
-        logging.info(f"Test Precision: {precision:.2f}")
-        logging.info(f"Test F1 Score: {f1:.2f}")  
+        if args.validation is not None:
+            for epoch, value in enumerate(results["validation"]["error"]):
+                run.log_metric(
+                    name="validation:error", value=value, step=epoch
+                )
+            
+            report_metrics(run, booster, validation_labels, dval, "validation")
 
-    my_tracker.close()
+        if args.test is not None: 
+            report_metrics(run, booster, test_labels, dtest, "test")
+        
