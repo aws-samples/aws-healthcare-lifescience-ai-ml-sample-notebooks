@@ -15,7 +15,7 @@ The Immersion Day workshops may be used by in the context of [AWS Instructure-Le
 
 ## Related Resources
 
-* The [AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI/ML) Immersion Days](https://catalog.workshops.aws/hcls-aiml/en-US) has overviews of a number of the workshops in this repository
+* The [AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI/ML) Immersion Days](https://catalog.workshops.aws/hcls-aiml/en-US) has overviews of a number of the workshops in this repository and instructions for running them.
 * The [SageMaker Immersion Day](https://github.com/aws-samples/amazon-sagemaker-immersion-day) provides many other useful workshops.
 * The [SageMaker sample code repository](https://github.com/aws/amazon-sagemaker-examples) provides more than 300 code samples for using SageMaker
 
