@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI/ML) Immersion Days offer an opportunity for AWS customers and those who wish to learn about AWS AI/ML services via a deep, hands on workshop experience. Customers can use Immersion Days to:
+[AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI/ML) Immersion Days](https://catalog.workshops.aws/hcls-aiml/en-US) offer an opportunity for AWS customers and those who wish to learn about AWS AI/ML services via a deep, hands on workshop experience. Customers can use Immersion Days to:
 
 * **Engage in hands on workshops to learn about AI/ML services.** We will work in a hands-on fashion with data scientists, machine learning engineers, developers, analysts and anyone else to familiarize the customer with our services. These workshops are hands on -- workshop participants will be provided with temporary AWS account(s) from which they will execute AI/ML workloads in a step-by-step fashion with our HCLS AI/ML Solutions Architects. Please see the Workshops section for available workshops.
 
@@ -15,6 +15,7 @@ The Immersion Day workshops may be used by in the context of [AWS Instructure-Le
 
 ## Related Resources
 
+* The [AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI/ML) Immersion Days](https://catalog.workshops.aws/hcls-aiml/en-US) has overviews of a number of the workshops in this repository and instructions for running them.
 * The [SageMaker Immersion Day](https://github.com/aws-samples/amazon-sagemaker-immersion-day) provides many other useful workshops.
 * The [SageMaker sample code repository](https://github.com/aws/amazon-sagemaker-examples) provides more than 300 code samples for using SageMaker
 
