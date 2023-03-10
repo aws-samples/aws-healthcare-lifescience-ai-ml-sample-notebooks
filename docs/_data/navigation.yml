@@ -1,0 +1,17 @@
+- title: Home
+  url: /
+- title: Latest 
+  url : /latest/
+- title: Categories
+  url: /categories/
+# - title: Solutions
+#   url: /
+# - title: Blogs
+#  url: /
+- title: Search
+  url: /search/ 
+# - title: About
+#   url: /about
+- title: Analytics
+  url: /analytics
+ 
