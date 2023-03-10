@@ -5,7 +5,6 @@ permalink: /analytics/
 
 ### Repository Github Analytics
 
-
 <iframe
     width="960"
     height="720"
