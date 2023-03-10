@@ -23,8 +23,8 @@ title: Welcome to HCLS AI/ML Content Catalog
 email: hcls-aiml-sa@amazon.com
 description: >- # this means to ignore newlines until "baseurl:"
   This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/aws-healthcare-lifescience-ai-ml-sample-notebooks" # the subpath of your site, e.g. /blog
+url: "https://aws-samples.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 logo : /images/logo.png
 date_format: "%B %-d, %Y"
 
