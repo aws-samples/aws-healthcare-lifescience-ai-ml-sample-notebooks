@@ -1,3 +1,0 @@
-dgl==0.6.1
-dgllife==0.2.8
-rdkit-pypi==2021.09.3

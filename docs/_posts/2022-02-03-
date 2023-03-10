@@ -1,0 +1,12 @@
+---
+layout: post
+title: Build Multiple Models In Parallel SageMaker
+date:   2022-02-03 00:00:00 +0000
+categories: Workshops
+---
+
+In this workshop, we will deploy different models partitioned by state; where a seperate model is built based on what state in the USA the hospital is located it. We will register the models in the SageMaker Model Registry.
+
+*Resources* :
+
+* [![Github](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png){: width="50" }]https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks/blob/main/workshops/Build_Multiple_Models_In_Parallel_SageMaker/train_multiple_models.ipynb){:target="_blank"}{:rel="noopener noreferrer"}
