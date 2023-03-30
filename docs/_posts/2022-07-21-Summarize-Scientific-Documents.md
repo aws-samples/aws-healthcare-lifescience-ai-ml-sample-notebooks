@@ -3,6 +3,8 @@ layout: post
 title:  "Summarize Scientific Documents"
 date:   2022-07-22 00:00:00 +0000
 categories: Workshops 
+author: 
+    name: Brian Loyal
 ---
 
 Researchers must stay up-to-date on their fields of interest. However, it's difficult to keep track of the large number of journals, whitepapers, and research pre-prints generated in many areas. In response, many research groups have turned to AI/ML tools to summarize and classify new documents.
