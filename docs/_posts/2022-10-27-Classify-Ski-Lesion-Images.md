@@ -3,6 +3,8 @@ layout: post
 title:  "Classify Skin Lesion Images"
 date:   2022-10-27 00:00:00 +0000
 categories: Workshops 
+author: 
+    name: Brian Loyal
 ---
 
 According to The Skin Cancer Foundation, 1 in 5 Americans will develop skin cancer by the age of 70 and more than 2 people die of skin cancer in the U.S. every hour. Worldwide, melanoma of skin is the 17th most common form of cancer. However, because non-melanoma skin cancer is often excluded from official statistics, it is significantly under-reported. In Brazil, according to the Brazilian Cancer Institute (INCA), skin cancer accounts for 33% of all cancer diagnoses in the country. Developing an algorithm to distinguish skin cancer from other lesions would allow communities to make the best use of limited healthcare resources.
