@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Predicting protein structures at scale using AWS Batch"
-date:   2022-10-19 00:00:00 +0000
+date:   2022-04-18 00:00:00 +0000
 categories: Blogs 
 author: 
     name: Brian Loyal
