@@ -3,6 +3,8 @@ layout: post
 title:  "Guidance for Protein Folding on AWS"
 date:   2022-10-19 00:00:00 +0000
 categories: Solutions 
+author: 
+    name: Brian Loyal
 ---
 
 This Guidance helps researchers run a diverse catalog of protein folding and design algorithms on AWS Batch. Knowing the physical structure of proteins is an important part of the drug discovery process. Machine learning (ML) algorithms significantly reduce the cost and time needed to generate usable protein structures.

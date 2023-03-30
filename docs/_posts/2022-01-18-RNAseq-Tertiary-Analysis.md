@@ -3,6 +3,8 @@ layout: post
 title:  "Classifying HER2 status from RNASeq Data"
 date:   2022-01-18 00:00:00 +0000
 categories: Workshops 
+author: 
+    name: Brian Loyal
 ---
 
 According to the American Cancer Society (ACS), breast cancer is the second most common cancer in women in the United States, behind skin cancers. It represents about 30% of all new female cancers each year. In 2022, ACS estimates that about 287,850 new cases of invasive breast cancer will be diagnosed in women and about 43,250 women will die from the disease.

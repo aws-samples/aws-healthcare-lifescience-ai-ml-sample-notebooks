@@ -3,6 +3,8 @@ layout: post
 title:  "Awesome Protein Analysis on AWS"
 date:   2022-10-19 00:00:00 +0000
 categories: Solutions 
+author: 
+    name: Brian Loyal
 ---
 
 Knowing the physical structure of proteins is an important part of both small molecule and biologics drug R&D. Machine learning algorithms like DeepMind’s AlphaFold can significantly reduce the cost and time required to generate usable protein structures. These high-profile projects have inspired increased development of AI-driven workflows for protein structure prediction, de novo protein design, and protein-ligand interaction analysis. AWS pharmaceutical and life science customers believe that these in silico tools can help reduce the cost and time required to bring new therapeutics to market.
