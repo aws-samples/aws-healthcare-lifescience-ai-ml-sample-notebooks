@@ -9,8 +9,6 @@ According to The Skin Cancer Foundation, 1 in 5 Americans will develop skin canc
 
 In this lab, you will use Amazon SageMaker to build, train, and deploy a classification model based on the PAD-UFES-20 skin lesion dataset.
 
-
 *Resources* :
 
-* [![Github](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png){: width="50" }]https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks/blob/main/workshops/Classify_Skin_Lesion_Images/1-Classify_Skin_Lesion_Images.ipynb){:target="_blank"}{:rel="noopener noreferrer"}
-
+* [![Github](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png){: width="50" }](https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks/blob/main/workshops/Classify_Skin_Lesion_Images/1-Classify_Skin_Lesion_Images.ipynb){:target="_blank"}{:rel="noopener noreferrer"}
