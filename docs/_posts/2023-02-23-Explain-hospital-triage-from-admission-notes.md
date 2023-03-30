@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Explain Hospital Triage from Admission Notes
-date:   2023-10-02 00:00:00 +0000
+date:   2023-02-23 00:00:00 +0000
 categories: Workshops
 ---
 

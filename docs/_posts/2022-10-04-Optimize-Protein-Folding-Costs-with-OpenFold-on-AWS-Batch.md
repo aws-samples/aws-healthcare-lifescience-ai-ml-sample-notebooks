@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Optimize Protein Folding Costs with OpenFold on AWS Batch"
-date:   2022-10-01 00:00:00 +0000
+date:   2022-10-04 00:00:00 +0000
 categories: Blogs 
 author: 
     name: Brian Loyal

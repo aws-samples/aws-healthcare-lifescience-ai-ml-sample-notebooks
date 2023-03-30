@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Summarize Scientific Documents"
-date:   2022-07-22 00:00:00 +0000
+date:   2022-07-21 00:00:00 +0000
 categories: Workshops 
 author: 
     name: Brian Loyal
