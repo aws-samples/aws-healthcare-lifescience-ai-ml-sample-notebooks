@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Guidance for Protein Folding on AWS"
-date:   2022-10-19 00:00:00 +0000
+date:   2023-02-24 00:00:00 +0000
 categories: Solutions 
 author: 
     name: Brian Loyal

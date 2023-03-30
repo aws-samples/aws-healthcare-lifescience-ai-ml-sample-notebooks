@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Build and Deploy Many Models Leveraging Cancer Gene Expression Data With SageMaker Pipelines and SageMaker Multi-Model Endpoints
-date:   2022-10-02 00:00:00 +0000
+date:   2022-10-01 00:00:00 +0000
 categories: Blogs Workshops
 ---
 In the context of survival analysis for cancer, a common approach is to analyze gene signatures, and to predict the survival of patients based on the gene expression signatures.

@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Train Multiple Models in Parallel Using SageMaker Training"
-date:   2022-03-22 00:00:00 +0000
+date:   2021-12-20 00:00:00 +0000
 categories: Workshops
 ---
 

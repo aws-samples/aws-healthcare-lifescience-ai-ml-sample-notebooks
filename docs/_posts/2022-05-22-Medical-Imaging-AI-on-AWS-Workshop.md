@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Medical Imaging AI on AWS Workshop"
-date:   2022-06-02 00:00:00 +0000
+date:   2022-05-22 00:00:00 +0000
 categories: Workshops 
 ---
 
