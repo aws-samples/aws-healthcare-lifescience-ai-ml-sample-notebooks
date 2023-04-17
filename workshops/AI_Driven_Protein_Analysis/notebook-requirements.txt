@@ -1,0 +1,8 @@
+py3Dmol==2.0.1
+biopython==1.81
+ipywidgets==8.0.4
+transformers==4.26.1
+accelerate==0.17.0
+boto3==1.26.70
+botocore==1.29.70
+sagemaker==2.137.0
