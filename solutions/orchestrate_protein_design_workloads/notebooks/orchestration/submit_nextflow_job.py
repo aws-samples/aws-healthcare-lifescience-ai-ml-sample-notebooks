@@ -20,7 +20,7 @@ print(rf_design_output)
 print(esmf_output)
 
 #move input files and code to their respective buckets in S3.
-#copy pdb structures
+#copy pdb structures. This example comes from the RFDesign repository
 os.system(f'aws s3 cp  pd1_demo/pd1.pdb s3://{bucket}/pd1-demo/') 
 os.system(f'aws s3 cp  pd1_demo/pdl1.pdb s3://{bucket}/pd1-demo/') 
 
