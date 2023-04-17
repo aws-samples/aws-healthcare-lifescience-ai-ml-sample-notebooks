@@ -29,7 +29,7 @@ Now you will push these commits back to the main branch in codecommit:
     S3_BUCKET="ENTER AN S3 BUCKET OF YOUR CHOICE"
     REGION="YOUR REGION"
     
-     aws cloudformation package --template-file infrastructure/cloudformation/batch-protein-folding-cfn-root.yaml --region us-east-2 --output-template infrastructure/cloudformation/batch-protein-folding-cfn-packaged.yaml --s3-bucket {S3_BUCKET}
+     aws cloudformation package --template-file infrastructure/cloudformation/batch-protein-folding-cfn-root.yaml --region {REGION} --output-template infrastructure/cloudformation/batch-protein-folding-cfn-packaged.yaml --s3-bucket {S3_BUCKET}
      
      #redeploy the CFN
      aws cloudformation deploy --template-file infrastructure/cloudformation/batch-protein-folding-cfn-packaged.yaml --stack-name   {STACK_NAME} --region {REGION} --capabilities CAPABILITY_IAM --parameter-overrides CreateG5ComputeEnvironment=N MultiAZ=N DownloadFsxData=Y
@@ -38,7 +38,6 @@ Now you will push these commits back to the main branch in codecommit:
 **7.** You may need to manually start the Nextflow CodeBuild step; you can do so from the CodeBuild console.
 
     
-
 
 ## Submission of Nextflow script
 
