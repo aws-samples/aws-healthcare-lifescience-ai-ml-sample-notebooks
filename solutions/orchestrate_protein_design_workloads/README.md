@@ -4,7 +4,7 @@
 
 The steps here show how to modify the [AWS Batchfold architecture](https://github.com/aws-solutions-library-samples/aws-batch-arch-for-protein-folding) to include orchestration with Nextflow. The `infrastructure` directory contains modified CloudFormation templates and a dockerfile to perform these steps.
 
-**1.** First, deploy the [AWS Batchfold architecture](https://github.com/aws-solutions-library-samples/aws-batch-arch-for-protein-folding) Cloudformatiom template, and wait for the architecture to fully deploy.
+**1.** First, deploy the [AWS Batchfold architecture](https://github.com/aws-solutions-library-samples/aws-batch-arch-for-protein-folding) Cloudformation template, and wait for the architecture to fully deploy.
 
 **2.** After the Batchfold architecture is deployed, it will create a repository in AWS CodeCommit with a name like the following pattern `batch-protein-folding-code-repo-xxxxxxxxx`. This repository will also be copied into a corresponding SageMaker notebook instance.
 
