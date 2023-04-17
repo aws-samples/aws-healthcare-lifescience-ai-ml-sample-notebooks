@@ -1,0 +1,12 @@
+pip 
+boto3==1.24.89 
+matplotlib==3.6.1 
+sagemaker==2.112.1 
+botocore==1.27.89 
+jaxlib==0.3.20
+jax==0.3.21 
+biopython==1.79 
+py3Dmol==1.8.1 
+dm-tree==0.1.7 
+numpy==1.23.3 
+attrs==22.1.0
