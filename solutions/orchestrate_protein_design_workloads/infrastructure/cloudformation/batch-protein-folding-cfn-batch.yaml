@@ -1,0 +1,502 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  batch-protein-folding-cfn-batch.yaml: Creates Batch computing environment.
+Parameters:
+  ApplicationName:
+    Description: Name of the application, if applicable
+    Type: String
+    Default: "Unknown"
+  DefaultSecurityGroupID:
+    Description: The default security group ID for the VPC
+    Type: String
+  FileSystemId:
+    Description: ID of the FSx for the Lustre file system
+    Type: String
+  FileSystemMountName:
+    Description: Mount name for the Lustre file system
+    Type: String
+  Subnets:
+    Description: List of private subnets
+    Type: CommaDelimitedList
+  DownloadContainerRegistryURI:
+    Description: URI of the download container
+    Type: String  
+  S3BucketName:
+    Description: Optional S3 Bucket Name
+    Type: String
+    Default: ""
+  CreateG5ComputeEnvironment:
+    Description: Create a compute environment for G5 instance types? Note that availabilty is region-specific
+    Type: String
+    Default: "N"    
+    
+Conditions:
+  CreateG5ComputeEnvironment:
+    "Fn::Equals": [Ref: "CreateG5ComputeEnvironment", "Y"]  
+
+Resources:
+  ##################################################
+  # EC2 Launch Template
+  ##################################################
+
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: "Required service policies to support running protein folding on AWS Batch"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: S3RWPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${S3BucketName}/*
+              - Action:
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                  - s3:PutBucketPolicy
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${S3BucketName}
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSBatchFullAccess #allow batch jobs to submit other batch jobs
+        - arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess #allow reading of Cloudformation stacks etc.
+      Tags:
+        - Key: Application
+          Value: !Ref ApplicationName
+        - Key: StackId
+          Value: !Ref AWS::StackId
+
+  InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole
+
+  InstanceLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: "/dev/xvda"
+            Ebs:
+              DeleteOnTermination: true
+              Encrypted: true
+              VolumeSize: 100
+              VolumeType: "gp3"
+        IamInstanceProfile:
+          Name: !Ref InstanceProfile
+        TagSpecifications:
+          - ResourceType: "instance"
+            Tags:
+              - Key: Application
+                Value: !Ref ApplicationName
+              - Key: StackId
+                Value: !Ref AWS::StackId
+        UserData:
+          Fn::Base64:
+            Fn::Join:
+              [
+                "",
+                [
+                  "MIME-Version: 1.0\n",
+                  "Content-Type: multipart/mixed; boundary=\"==MYBOUNDARY==\"\n",
+                  "\n",
+                  "--==MYBOUNDARY==\n",
+                  "Content-Type: text/cloud-config; charset=\"us-ascii\"\n",
+                  "\n",
+                  "runcmd:\n",
+                  "- file_system_id_01=",
+                  !Ref FileSystemId,
+                  "\n",
+                  "- region=",
+                  !Ref "AWS::Region",
+                  "\n",
+                  "- fsx_directory=/fsx\n",
+                  "- fsx_mount_name=",
+                  !Ref FileSystemMountName,
+                  "\n",
+                  "- amazon-linux-extras install -y lustre2.10\n",
+                  "- mkdir -p ${fsx_directory}\n",
+                  "- mount -t lustre ${file_system_id_01}.fsx.${region}.amazonaws.com@tcp:/${fsx_mount_name} ${fsx_directory}\n",
+                  "\n",
+                  "--==MYBOUNDARY==--",
+                ],
+              ]
+
+  AmazonEC2SpotFleetTaggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: "Required service policies to support tagging spot fleet instances on AWS Batch"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - spotfleet.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
+      Tags:
+        - Key: Application
+          Value: !Ref ApplicationName
+        - Key: StackId
+          Value: !Ref AWS::StackId
+        
+  AWSServiceRoleForEC2SpotServiceLinkedRole:
+    Type: AWS::IAM::ServiceLinkedRole
+    Properties:
+      AWSServiceName: spot.amazonaws.com
+      Description: Default EC2 Spot Service Linked Role
+
+  AWSServiceRoleForEC2SpotFleetServiceLinkedRole:
+    Type: AWS::IAM::ServiceLinkedRole
+    Properties:
+      AWSServiceName: spotfleet.amazonaws.com
+      Description: Default EC2 Spot Service Linked Role
+
+  ####################################################################################################
+  # Batch Compute Environments
+  ####################################################################################################
+
+  CPUComputeEnvironmentOnDemand:
+     Type: AWS::Batch::ComputeEnvironment
+     Properties:
+       ComputeResources:
+         AllocationStrategy: BEST_FIT_PROGRESSIVE
+         InstanceRole: !Ref InstanceProfile
+         InstanceTypes:
+           - m5
+           - r5
+           - c5
+         LaunchTemplate:
+           LaunchTemplateId: !Ref InstanceLaunchTemplate
+           Version: $Latest
+         MaxvCpus: 256
+         MinvCpus: 0
+         SecurityGroupIds:
+           - !Ref DefaultSecurityGroupID
+         Subnets: !Ref Subnets
+         Type: EC2
+         Tags:
+           Application: !Ref ApplicationName
+           StackId: !Ref "AWS::StackId"        
+       State: ENABLED
+       Type: MANAGED
+       Tags:
+         Application: !Ref ApplicationName
+         StackId: !Ref "AWS::StackId"
+
+  # CPUComputeEnvironmentSpot:
+  #   Type: AWS::Batch::ComputeEnvironment
+  #   Properties:
+  #     ComputeResources:
+  #       AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
+  #       BidPercentage: 100
+  #       InstanceRole: !Ref InstanceProfile
+  #       InstanceTypes:
+  #         - m5
+  #         - r5
+  #         - c5
+  #       LaunchTemplate:
+  #         LaunchTemplateId: 
+  #           Ref: InstanceLaunchTemplate
+  #         Version: $Latest
+  #       MaxvCpus: 256
+  #       MinvCpus: 0
+  #       SecurityGroupIds:
+  #         - Ref: DefaultSecurityGroupID
+  #       SpotIamFleetRole:
+  #         "Fn::GetAtt": AmazonEC2SpotFleetTaggingRole.Arn
+  #       Subnets: !Ref Subnets
+  #       Type: SPOT
+  #       Tags:
+  #         Application: !Ref ApplicationName
+  #         StackId: !Ref "AWS::StackId"               
+  #     State: ENABLED
+  #     Type: MANAGED
+  #     Tags:
+  #       Application: !Ref ApplicationName
+  #       StackId: !Ref "AWS::StackId"        
+
+  GravitonComputeEnvironmentSpot:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeResources:
+        AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
+        BidPercentage: 100
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - m6g
+          - r6g
+          - c6g
+        LaunchTemplate:
+          LaunchTemplateId: 
+            Ref: InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        SecurityGroupIds:
+          - Ref: DefaultSecurityGroupID
+        SpotIamFleetRole:
+          "Fn::GetAtt": AmazonEC2SpotFleetTaggingRole.Arn
+        Subnets: !Ref Subnets
+        Type: SPOT
+        Tags:
+          Application: !Ref ApplicationName
+          StackId: !Ref "AWS::StackId"               
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"            
+
+  GravitonComputeEnvironmentOnDemand:
+    Type: AWS::Batch::ComputeEnvironment      
+    Properties:
+      ComputeResources:
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - m6g
+          - r6g
+          - c6g
+        LaunchTemplate:
+          LaunchTemplateId: !Ref InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        SecurityGroupIds:
+          - !Ref DefaultSecurityGroupID
+        Subnets: !Ref Subnets
+        Type: EC2
+        Tags:
+          Application: !Ref ApplicationName
+          StackId: !Ref "AWS::StackId"               
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"
+
+  G4dnComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeResources:
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - g4dn
+        LaunchTemplate:
+          LaunchTemplateId: !Ref InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        SecurityGroupIds:
+          - Ref: DefaultSecurityGroupID
+        Subnets: !Ref Subnets
+        Type: EC2
+        Tags:
+          Application: !Ref ApplicationName
+          StackId: !Ref "AWS::StackId"               
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"
+
+  G5ComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Condition: CreateG5ComputeEnvironment
+    Properties:
+      ComputeResources:
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - g5
+        LaunchTemplate:
+          LaunchTemplateId: !Ref InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        SecurityGroupIds:
+          - Ref: DefaultSecurityGroupID
+        Subnets: !Ref Subnets
+        Type: EC2
+        Tags:
+          Application: !Ref ApplicationName
+          StackId: !Ref "AWS::StackId"               
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"        
+
+  ####################################################################################################
+  # Batch Job Queues
+  ####################################################################################################
+
+  CPUOnDemandJobQueue:
+     Type: AWS::Batch::JobQueue
+     Properties:
+       ComputeEnvironmentOrder:
+         - ComputeEnvironment: !Ref CPUComputeEnvironmentOnDemand
+           Order: 1
+       Priority: 10
+       State: ENABLED
+       Tags:
+         Application: !Ref ApplicationName
+         StackId: !Ref "AWS::StackId"
+
+  # CPUSpotJobQueue:
+  #   Type: AWS::Batch::JobQueue
+  #   Properties:
+  #     ComputeEnvironmentOrder:
+  #       - ComputeEnvironment: !Ref CPUComputeEnvironmentSpot
+  #         Order: 1
+  #     Priority: 10
+  #     State: ENABLED
+  #     Tags:
+  #       Application: !Ref ApplicationName
+  #       StackId: !Ref "AWS::StackId"      
+
+  GravitonOnDemandJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref GravitonComputeEnvironmentOnDemand
+          Order: 1
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"   
+
+  GravitonSpotJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref GravitonComputeEnvironmentSpot
+          Order: 1
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"              
+
+  G4dnJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref G4dnComputeEnvironment
+          Order: 1
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"
+
+  G5JobQueue:
+    Type: AWS::Batch::JobQueue
+    Condition: CreateG5ComputeEnvironment    
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref G5ComputeEnvironment
+          Order: 1
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"        
+
+  DownloadJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "echo hello"
+        Image: !Join [":", [!Ref DownloadContainerRegistryURI, "latest"]]
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /database
+            ReadOnly: False
+            SourceVolume: database
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 8
+          - Type: MEMORY
+            Value: 16000
+        Volumes:
+          - Name: database
+            Host:
+              SourcePath: /fsx
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 3
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"
+      Type: container            
+
+Outputs:
+  LaunchTemplate:
+    Description: Launch template for EC2 instances.
+    Value:
+      Ref: InstanceLaunchTemplate
+  CPUOnDemandJobQueue:
+     Description: Job queue for on-demand CPU instances.
+     Value:
+       Ref: CPUOnDemandJobQueue
+  #CPUSpotJobQueue:
+     #Description: Job queue for spot CPU instances.
+     #Value:
+       #Ref: CPUSpotJobQueue
+  G4dnJobQueue:
+    Description: Job queue for on-demand GPU instances.
+    Value: 
+      Ref: G4dnJobQueue
+  G5JobQueue:
+    Condition: CreateG5ComputeEnvironment
+    Description: Job queue for on-demand G5 instances.
+    Value: 
+      Ref: G5JobQueue      
+  GravitonSpotJobQueue:
+    Description: Job queue for spot Graviton instances.
+    Value: 
+      Ref: GravitonSpotJobQueue       
+  GravitonOnDemandJobQueue:
+    Description: Job queue for On-Demand Graviton instances.
+    Value: 
+      Ref: GravitonOnDemandJobQueue         
+  DownloadJobDefinition:
+    Description: Job definition for downloading reference data.
+    Value:
+      Ref: DownloadJobDefinition                
+  S3BucketName:
+    Description: Optional S3 Bucket name.
+    Value:
+      Ref: S3BucketName

@@ -1,0 +1,395 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  batch-protein-folding-cfn-root.yaml: Root stack for running protein folding on AWS Batch
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Default: BatchProteinFolding
+  LaunchSageMakerNotebook:
+    Type: String
+    Default: Y
+    Description: Create a SageMaker Notebook Instance.
+    AllowedValues: [Y, N]          
+  VPC:
+    Description: (Optional) ID of VPC to use. If left empty, a new VPC will be created.
+    Type: String
+    Default: ""     
+  Subnet:
+    Description: (Optional) ID of private subnet to use. If left empty, a new VPC will be created.
+    Type: String
+    Default: ""     
+  DefaultSecurityGroup:
+    Description: (Optional) ID of security group to use. If left empty, a new VPC will be created.
+    Type: String
+    Default: ""
+  FileSystemId:
+    Description: (Optional) ID of FSX for Lustre  to use. If left empty, a new FSx for Lustre instance will be created.
+    Type: String
+    Default: ""
+  FileSystemMountName:
+    Description: (Optional) Mount name of FSX for Lustre to use. If left empty, a new FSx for Lustre instance will be created.
+    Type: String
+    Default: ""    
+  DownloadFsxData:
+    Description: Automatically populate FSx for Lustre file system with model parameters and sequence databases?
+    Type: String
+    Default: "Y"
+    AllowedValues: [Y, N]
+  CreateG5ComputeEnvironment:
+    Description: Create a compute environment for G5 instance types? Note that availabilty is region-specific
+    Type: String
+    Default: "N"
+    AllowedValues: [Y, N]    
+  MultiAZ:
+    Description: Use multiple availability zones?
+    Type: String
+    Default: "Y"
+    AllowedValues: [Y, N]
+
+Conditions:
+  CreateFileSystem:
+    "Fn::Or":
+      [
+        "Fn::Equals": [Ref: FileSystemId, ""],
+        "Fn::Equals": [Ref: FileSystemMountName, ""],
+        "Fn::Equals": [Ref: VPC, ""],
+        "Fn::Equals": [Ref: DefaultSecurityGroup, ""],
+        "Fn::Equals": [Ref: Subnet, ""],
+      ]
+  CreateNetwork:
+    "Fn::Or":
+      [
+        "Fn::Equals": [Ref: VPC, ""],
+        "Fn::Equals": [Ref: DefaultSecurityGroup, ""],
+        "Fn::Equals": [Ref: Subnet, ""],
+      ]
+  CreateSageMakerNotebook:
+    "Fn::Equals": [Ref: "LaunchSageMakerNotebook", "Y"]
+  DownloadFsxDataCondition:
+    "Fn::Equals": [Ref: "DownloadFsxData", "Y"] 
+
+Resources:
+
+  ##################################################
+  # S3
+  ##################################################
+
+  BatchFoldS3Bucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      AccessControl: Private
+      LoggingConfiguration:
+        LogFilePrefix: code-pipeline-logs
+      Tags:
+        - Key: Application
+          Value: !Ref ApplicationName
+        - Key: StackId
+          Value: !Ref AWS::StackId
+
+  S3BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref BatchFoldS3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:GetObjectVersion
+            Effect: Allow
+            Resource:
+              - !Sub ${BatchFoldS3Bucket.Arn}/*
+            Principal:
+              AWS: !Ref AWS::AccountId
+          - Action:
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+              - s3:PutBucketPolicy
+            Effect: Allow
+            Resource:
+              - !GetAtt BatchFoldS3Bucket.Arn
+            Principal:
+              AWS: !Ref AWS::AccountId
+
+  Network:
+    Type: "AWS::CloudFormation::Stack"
+    Condition: CreateNetwork
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-network.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        MultiAZ:
+          Ref: MultiAZ
+
+  FileSystem:
+    Type: "AWS::CloudFormation::Stack"
+    Condition: CreateFileSystem
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-fsx-lustre.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        DefaultSecurityGroup:
+          "Fn::If":
+            - CreateNetwork
+            - "Fn::GetAtt": Network.Outputs.DefaultSecurityGroup
+            - Ref: DefaultSecurityGroup
+        FSXForLustreStorageCapacity: 2400
+        FSxForLustreThroughput: 500
+        Subnet:
+          "Fn::If":
+            - CreateNetwork
+            - !Select [0, !Split [",", !GetAtt Network.Outputs.PrivateSubnets]]
+            - Ref: Subnet
+        S3BucketName:
+          Ref: BatchFoldS3Bucket
+
+  Container:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-container.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        LambdaSubnet:
+          "Fn::If":
+            - CreateNetwork
+            - !Select [0, !Split [",", !GetAtt Network.Outputs.PrivateSubnets]]
+            - Ref: Subnet
+        LambdaSecurityGroupId:
+          "Fn::If":
+            - CreateNetwork
+            - "Fn::GetAtt": Network.Outputs.DefaultSecurityGroup
+            - Ref: DefaultSecurityGroup        
+        DownloadFsxData:
+          Ref: DownloadFsxData
+        S3BucketARN:
+          "Fn::GetAtt": BatchFoldS3Bucket.Arn
+
+  BatchEnvironment:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-batch.yaml
+      Parameters:
+        CreateG5ComputeEnvironment:
+          Ref: CreateG5ComputeEnvironment
+        ApplicationName:
+          Ref: ApplicationName
+        Subnets:
+          "Fn::If":
+            - CreateNetwork
+            - !GetAtt Network.Outputs.PrivateSubnets
+            - Ref: Subnet
+        DefaultSecurityGroupID:
+          "Fn::If":
+            - CreateNetwork
+            - "Fn::GetAtt": Network.Outputs.DefaultSecurityGroup
+            - Ref: DefaultSecurityGroup
+        FileSystemId:
+          "Fn::If":
+            - CreateFileSystem
+            - "Fn::GetAtt": FileSystem.Outputs.FileSystemId
+            - Ref: FileSystemId
+        FileSystemMountName:
+          "Fn::If":
+            - CreateFileSystem
+            - "Fn::GetAtt": FileSystem.Outputs.FileSystemMountName
+            - Ref: FileSystemMountName
+        DownloadContainerRegistryURI:
+          "Fn::GetAtt": Container.Outputs.DownloadContainerRegistryURI
+        S3BucketName:
+          Ref: BatchFoldS3Bucket
+
+  Notebook:
+    Type: "AWS::CloudFormation::Stack"
+    Condition: CreateSageMakerNotebook
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-notebook.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        Subnet:
+          "Fn::If":
+            - CreateNetwork
+            - !Select [0, !Split [",", !GetAtt Network.Outputs.PrivateSubnets]]
+            - Ref: Subnet
+        DefaultSecurityGroupID:
+          "Fn::If":
+            - CreateNetwork
+            - "Fn::GetAtt": Network.Outputs.DefaultSecurityGroup
+            - Ref: DefaultSecurityGroup
+        CodeRepositoryURI:
+          "Fn::GetAtt": Container.Outputs.CodeRepositoryURI    
+        S3BucketName:
+          Ref: BatchFoldS3Bucket
+
+  DownloadData:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+      - BatchEnvironment
+    Condition: DownloadFsxDataCondition
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-download.yaml
+      Parameters:
+        DownloadJobQueue:
+          "Fn::GetAtt": BatchEnvironment.Outputs.GravitonOnDemandJobQueue
+        JobDefinition:
+          "Fn::GetAtt": BatchEnvironment.Outputs.DownloadJobDefinition
+        LambdaSubnet:
+          "Fn::If":
+            - CreateNetwork
+            - !Select [0, !Split [",", !GetAtt Network.Outputs.PrivateSubnets]]
+            - Ref: Subnet
+        LambdaSecurityGroupId:
+          "Fn::If":
+            - CreateNetwork
+            - "Fn::GetAtt": Network.Outputs.DefaultSecurityGroup
+            - Ref: DefaultSecurityGroup             
+
+#################################################################################
+# Modules
+#################################################################################
+
+  ModuleAlphaFold2:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-alphafold2.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn
+
+  ModuleOpenFold:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-openfold.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn          
+
+  ModuleJackhmmer:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-jackhmmer.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn      
+
+  ModuleOmegaFold:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-omegafold.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn   
+
+  ModuleRFDesignFold:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-rfdesign.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn   
+
+  ModuleESMFold:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-esmfold.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn 
+
+  ModuleNextflow:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: batch-protein-folding-cfn-module-nextflow.yaml
+      Parameters:
+        ApplicationName:
+          Ref: ApplicationName
+        CodeRepositoryUrl:
+            "Fn::GetAtt": Container.Outputs.CodeRepositoryURI          
+        CodeBuildEncryptionKey:
+            "Fn::GetAtt": Container.Outputs.CodeBuildEncryptionKey      
+        CodeBuildRoleArn:
+            "Fn::GetAtt": Container.Outputs.CodeBuildRoleArn
+        StartCodeBuildLambdaArn:
+            "Fn::GetAtt": Container.Outputs.StartCodeBuildLambdaArn            
+        DeleteContainerRepoLambdaArn:
+            "Fn::GetAtt": Container.Outputs.DeleteContainerRepoLambdaArn   
+
+Outputs:
+  ApplicationName:
+    Description: Name of the application
+    Value:
+      Ref: ApplicationName

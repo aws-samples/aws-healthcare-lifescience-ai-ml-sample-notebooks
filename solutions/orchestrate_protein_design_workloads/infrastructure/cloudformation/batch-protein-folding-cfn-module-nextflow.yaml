@@ -1,0 +1,131 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  batch-protein-folding-cfn-module-nextflow.yaml: Implement Nextflow module.
+Parameters:
+  ApplicationName:
+    Description: Name of the application, if applicable
+    Type: String
+    Default: "Unknown"
+  CodeRepositoryUrl:
+    Description: Clone URL for the CodeCommit repository
+    Type: String
+  CodeBuildEncryptionKey:
+    Description: Encryption key for CodeBuild jobs
+    Type: String
+  CodeBuildRoleArn:
+    Description: IAM role for CodeBuild jobs
+    Type: String
+  StartCodeBuildLambdaArn:
+    Description: Lambda function for building container repos
+    Type: String      
+  DeleteContainerRepoLambdaArn:
+    Description: Lambda function for deleting container repos
+    Type: String
+
+Resources:
+
+  NextflowContainerRegistry:
+    Type: AWS::ECR::Repository
+    Properties:
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      Tags:
+        - Key: Application
+          Value: !Ref ApplicationName
+        - Key: StackId
+          Value: !Ref "AWS::StackId" 
+
+  CodeBuildProjectNextflow:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Build Docker container for Nextflow algorithm on AWS Batch
+      EncryptionKey: !Ref CodeBuildEncryptionKey
+      Environment:
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        EnvironmentVariables:
+          - Name: IMAGE_TAG
+            Value: latest
+          - Name: IMAGE_REPO_NAME
+            Value: !Ref NextflowContainerRegistry
+          - Name: ACCOUNT_ID
+            Value: !Ref "AWS::AccountId"
+          - Name: BUILD_CONTEXT
+            Value: infrastructure/docker/nextflow
+        Image: aws/codebuild/standard:4.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      ResourceAccessRole: !Ref CodeBuildRoleArn
+      ServiceRole: !Ref CodeBuildRoleArn
+      Source:
+        BuildSpec: infrastructure/docker/buildspec.yaml
+        GitCloneDepth: 1
+        Location: !Ref CodeRepositoryUrl
+        Type: CODECOMMIT
+      SourceVersion: refs/heads/main
+      Tags:
+        - Key: Application
+          Value: !Ref ApplicationName
+        - Key: StackId
+          Value: !Ref "AWS::StackId"   
+
+  StartNextflowContainerBuild:
+    Type: Custom::ResourceForBuildingContainer
+    Properties:
+      ServiceToken:
+        Ref: StartCodeBuildLambdaArn
+      ProjectName:
+        Ref: CodeBuildProjectNextflow  
+
+  NextflowJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "echo hello"
+        Image: !Sub "${NextflowContainerRegistry.RepositoryUri}:latest"
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /database
+            ReadOnly: True
+            SourceVolume: database          
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 1
+          - Type: MEMORY
+            Value: 1000
+        Volumes:
+          - Name: database
+            Host:
+              SourcePath: /fsx            
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 3
+      Tags:
+        Application: !Ref ApplicationName
+        StackId: !Ref "AWS::StackId"
+      Type: container
+
+  DeleteNextflowContainerRepo:
+    Type: Custom::ResourceForDeletingECR
+    Properties:
+      ServiceToken:
+        Ref: DeleteContainerRepoLambdaArn
+      ContainerRepo:
+        Ref: NextflowContainerRegistry
+
+Outputs:
+  NextflowJobDefinition:
+    Description: Job definition for running Nextflow jobs on GPU instances.
+    Value:
+      Ref: NextflowJobDefinition
