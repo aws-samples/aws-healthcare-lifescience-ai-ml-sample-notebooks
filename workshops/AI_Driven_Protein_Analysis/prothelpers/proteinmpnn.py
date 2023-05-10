@@ -28,17 +28,20 @@ from .protein_mpnn_utils import (
     tied_featurize,
     parse_PDB,
     parse_fasta,
-    StructureDataset, StructureDatasetPDB, ProteinMPNN
+    StructureDataset,
+    StructureDatasetPDB,
+    ProteinMPNN,
 )
+
 
 def design(
     pdb_path="",
-    out_folder="data/results",    
-    chain_id_jsonl = "",
-    fixed_positions_jsonl = "",
-    bias_AA_jsonl = "",
-    bias_by_res_jsonl = "",
-    omit_AA_jsonl = "",
+    out_folder="data/results",
+    chain_id_jsonl="",
+    fixed_positions_jsonl="",
+    bias_AA_jsonl="",
+    bias_by_res_jsonl="",
+    omit_AA_jsonl="",
     pssm_jsonl="",
     tied_positions_jsonl="",
     ca_only=False,
@@ -63,10 +66,11 @@ def design(
     pssm_threshold=0.0,
     pssm_log_odds_flag=0,
     pssm_bias_flag=0,
-    remove_input_from_output=False
+    remove_input_from_output=False,
 ):
     args = locals()
     main(argparse.Namespace(**locals()))
+
 
 def main(args):
     if args.seed:

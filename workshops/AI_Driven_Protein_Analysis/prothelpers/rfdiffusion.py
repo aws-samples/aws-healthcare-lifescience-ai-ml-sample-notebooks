@@ -14,35 +14,39 @@ import numpy as np
 import random
 import glob
 
+
 def make_deterministic(seed=0):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
-    
+
+
 def create_structures(overrides):
     with initialize(version_base=None, config_path="config"):
         cfg = compose(config_name="rfdiffusion", overrides=overrides)
     run_inference(cfg)
 
+
 @hydra.main(version_base=None, config_path="config", config_name="rfdiffusion")
 def run_inference(conf: HydraConfig) -> None:
-
     log = logging.getLogger(__name__)
-    log.setLevel('INFO')
+    log.setLevel("INFO")
     if conf.inference.deterministic:
         make_deterministic()
 
     # Check for available GPU and print result of check
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name(torch.cuda.current_device())
-        log.info(f"Found GPU with device_name {device_name}. Will run RFdiffusion on {device_name}")
+        log.info(
+            f"Found GPU with device_name {device_name}. Will run RFdiffusion on {device_name}"
+        )
     else:
         log.info("////////////////////////////////////////////////")
         log.info("///// NO GPU DETECTED! Falling back to CPU /////")
         log.info("////////////////////////////////////////////////")
 
     sampler = iu.sampler_selector(conf)
-    
+
     # Loop over number of designs to sample.
     design_startnum = sampler.inf_conf.design_startnum
     if sampler.inf_conf.design_startnum == -1:

@@ -10,6 +10,7 @@ from prothelpers.sequence import list_files_in_dir
 import os
 import py3Dmol
 
+
 def atoms_to_pdb(input):
     """Convert Biopython structure to a PDB string"""
 
@@ -78,16 +79,18 @@ def get_aa_seq(input):
         ]
     return "".join(residue_list)
 
+
 def get_average_plddt(input_file):
-    plddts = []    
-    with open(input_file, 'r') as in_file:
+    plddts = []
+    with open(input_file, "r") as in_file:
         for line in in_file:
-            if line.startswith(('ATOM', 'HETATM')):
+            if line.startswith(("ATOM", "HETATM")):
                 plddt = float(line[60:66].rstrip())
-                plddts.append(plddt)                
+                plddts.append(plddt)
     return mean(plddts)
 
-def create_tiled_py3dmol_view(structures, total_cols = 2, width = 500, height = 500):
+
+def create_tiled_py3dmol_view(structures, total_cols=2, width=500, height=500):
     total_rows = len(structures) // total_cols
     view = py3Dmol.view(viewergrid=(total_rows, total_cols), width=width, height=height)
     view.removeAllModels()
@@ -95,26 +98,27 @@ def create_tiled_py3dmol_view(structures, total_cols = 2, width = 500, height = 
     str_iter = iter(structures)
     for i in range(total_rows):
         for j in range(total_cols):
-            view.addModel(next(str_iter), "pdb", viewer=(i, j))     
-    return(view)
+            view.addModel(next(str_iter), "pdb", viewer=(i, j))
+    return view
 
-def extract_structures_from_dir(dir, extension = ".pdb"):
-    
+
+def extract_structures_from_dir(dir, extension=".pdb"):
     file_list = list_files_in_dir(dir, extension)
-    
+
     structures = []
     for obj in file_list:
         if extension in obj:
             p = os.path.join(dir, obj)
             with open(p, "r") as f:
                 structures.append(f.read())
-    return(structures)
+    return structures
+
 
 def get_mean_plddt(structure):
-    plddts = []    
+    plddts = []
     lines = structure.split("\n")
     for line in lines:
-        if line.startswith(('ATOM', 'HETATM')):
+        if line.startswith(("ATOM", "HETATM")):
             plddt = float(line[60:66].rstrip())
-            plddts.append(plddt)                
+            plddts.append(plddt)
     return mean(plddts)

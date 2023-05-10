@@ -1,4 +1,3 @@
-
 import json
 import numpy as np
 import os
@@ -11,13 +10,16 @@ from typing import Any, Dict, List
 
 MODEL_NAME = "facebook/esmfold_v1"
 
+
 def model_fn(model_dir: str) -> Dict[str, Any]:
-    """ Load the model artifact """
+    """Load the model artifact"""
 
     try:
         model_path = os.path.join(model_dir, "esmfold_v1")
         tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
-        model = transformers.EsmForProteinFolding.from_pretrained(model_path, low_cpu_mem_usage=True)
+        model = transformers.EsmForProteinFolding.from_pretrained(
+            model_path, low_cpu_mem_usage=True
+        )
 
         if torch.cuda.is_available():
             model.to("cuda")
@@ -33,12 +35,13 @@ def model_fn(model_dir: str) -> Dict[str, Any]:
     except Exception as e:
         traceback.print_exc()
         raise e
-        
+
+
 def input_fn(request_body: str, request_content_type: str = "text/csv") -> List[str]:
-    """ Process the request """
+    """Process the request"""
 
     print(request_content_type)
-    
+
     if request_content_type == "text/csv":
         sequence = request_body
         print("Input protein sequence: ", sequence)
@@ -48,11 +51,12 @@ def input_fn(request_body: str, request_content_type: str = "text/csv") -> List[
         print("Input protein sequence: ", sequence)
         return sequence
     else:
-        raise ValueError("Unsupported content type: {}".format(request_content_type))        
+        raise ValueError("Unsupported content type: {}".format(request_content_type))
+
 
 def predict_fn(input_data: List, tokenizer_model: tuple) -> np.ndarray:
-    """ Run the prediction """
-    
+    """Run the prediction"""
+
     try:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         esm_tokenizer, esm_model = tokenizer_model
@@ -66,10 +70,11 @@ def predict_fn(input_data: List, tokenizer_model: tuple) -> np.ndarray:
     except Exception as e:
         traceback.print_exc()
         raise e
-        
+
+
 def output_fn(outputs: str, response_content_type: str = "text/csv"):
     """Transform the prediction into a pdb-formatted string"""
-    
+
     final_atom_positions = atom14_to_atom37(outputs["positions"][-1], outputs)
     outputs = {k: v.to("cpu").numpy() for k, v in outputs.items()}
     final_atom_positions = final_atom_positions.cpu().numpy()
@@ -89,7 +94,7 @@ def output_fn(outputs: str, response_content_type: str = "text/csv"):
             chain_index=outputs["chain_index"][i] if "chain_index" in outputs else None,
         )
         pdbs.append(to_pdb(pred))
-        
+
     if response_content_type == "text/csv":
         return pdbs
     elif response_content_type == "application/json":
