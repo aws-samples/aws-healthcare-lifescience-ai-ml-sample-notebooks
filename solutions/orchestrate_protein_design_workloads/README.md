@@ -24,8 +24,8 @@ Now you will push these commits back to the main branch in codecommit:
     
 **6.** Now that the repository has been updated, you will need to re-run the cloudformation to update it. Make sure that the stack name is the **same stack name** you chose when deploying the original Batchfold architecture.
 
-
-    S3_BUCKET="ENTER AN S3 BUCKET OF YOUR CHOICE"
+    #just enter the name of the bucket in the format "mybucket
+    S3_BUCKET="ENTER AN S3 BUCKET OF YOUR CHOICE" 
     S3_BUCKET="ENTER AN S3 BUCKET OF YOUR CHOICE"
     REGION="YOUR REGION"
     
