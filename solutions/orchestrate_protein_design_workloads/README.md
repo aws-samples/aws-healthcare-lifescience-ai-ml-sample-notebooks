@@ -1,4 +1,8 @@
+*Deprecated*: The [AWS Batch Guidance for Protein Folding and Design](https://github.com/aws-solutions-library-samples/aws-batch-arch-for-protein-folding) now supports natively Nextflow. See [here](https://github.com/aws-solutions-library-samples/aws-batch-arch-for-protein-folding/tree/main/notebooks/orchestration) for sample notebooks. 
+
 # AWS Batch for Protein Folding With Nextflow Orchestration
+
+
 
 ## Deployment
 
