@@ -26,31 +26,12 @@ Life science companies need to reach ever-smaller groups of customers with tailo
 
 ![Top-level workflow diagram](assets/images/readme-workflow.png)
 
-### 3.2. Notebook Summaries
+### 3.2. Notebook Summary
 
-#### Notebook 1: Extract Text from .pdf with Amazon Textract
-
-Extract the product description and claims data from a technical document.
-
-#### Notebook 2: Generate Drug Names with Amazon Bedrock
-
-Generate new drug brand names using the Titan text generation model in Amazon Bedrock.
-
-#### Notebook 3: Generate Marketing Text with Amazon Bedrock
-
-Generate headline and body text from a product description using the Anthropic Claude model in Amazon Bedrock.
-
-#### Notebook 4: Generate Marketing Images with Amazon Bedrock
-
-Generate stock images using the Stability.ai Stable Diffusion model in Amazon Bedrock.
-
-#### Notebook 5: Localize Content
-
-Translate the marketing text using Amazon Translate and perform image-to-image transformation using Stable Diffusion in Amazon Bedrock.
-
-#### Notebook 6: Assemble Marketing Document
-
-Create multiple marketing campaign documents from the generated assets.
+1. Generate headline and body text from a product description using the Anthropic Claude model in Amazon Bedrock.
+1. Generate stock images using the Stability.ai Stable Diffusion model in Amazon Bedrock.
+1. Translate the marketing text using Amazon Translate and perform image-to-image transformation using Stable Diffusion in Amazon Bedrock.
+1. Create multiple marketing campaign documents from the generated assets.
 
 ---
 
@@ -64,11 +45,7 @@ Create multiple marketing campaign documents from the generated assets.
 
  [Amazon Bedrock](https://aws.amazon.com/bedrock/) is a fully managed service that makes FMs from leading AI startups and Amazon available via an API, so you can choose from a wide range of FMs to find the model that's best suited for your use case. With the Bedrock serverless experience, you can get started quickly, privately customize FMs with your own data, and easily integrate and deploy them into your applications using the AWS tools and capabilities you are familiar with (including integrations with Amazon SageMaker ML features such as Experiments to test different models and Pipelines to manage your FMs at scale) without having to manage any infrastructure.
 
-### 4.3. Amazon Textract
-
- [Amazon Textract](https://aws.amazon.com/textract/) is a machine learning (ML) service that automatically extracts text, handwriting, and data from scanned documents. It goes beyond simple optical character recognition (OCR) to identify, understand, and extract data from forms and tables. Today, many companies manually extract data from scanned documents such as PDFs, images, tables, and forms, or through simple OCR software that requires manual configuration (which often must be updated when the form changes). To overcome these manual and expensive processes, Textract uses ML to read and process any type of document, accurately extracting text, handwriting, tables, and other data with no manual effort. You can quickly automate document processing and act on the information extracted, whether you’re automating loans processing or extracting information from invoices and receipts. Textract can extract the data in minutes instead of hours or days. Additionally, you can add human reviews with Amazon Augmented AI to provide oversight of your models and check sensitive data.
-
-### 4.4. Amazon Translate
+### 4.3. Amazon Translate
 
 [Amazon Translate](https://aws.amazon.com/translate/) is a neural machine translation service that delivers fast, high-quality, affordable, and customizable language translation.
 
