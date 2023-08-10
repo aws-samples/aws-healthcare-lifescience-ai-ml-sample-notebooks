@@ -8,7 +8,7 @@
 2. [Customer Need](#2-customer-need)  
 3. [Solution](#3-solution)  
 3.1. [Workflow](#31-workflow)  
-3.2. [Notebook Summaries](#32-notebook-summaries)  
+3.2. [Notebook Summary](#32-notebook-summary)  
 4. [Service Details](#4-service-details)  
 5. [Access](%5-access)
 
