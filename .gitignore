@@ -1,2 +1,5 @@
 .DS_Store
 **/*.ipynb_checkpoints/
+.venv/
+workshops/Marketing_Content_Localization/dependencies/
+__pycache__/
