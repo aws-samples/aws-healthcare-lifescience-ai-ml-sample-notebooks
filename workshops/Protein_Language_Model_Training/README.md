@@ -1,8 +1,8 @@
-# Fine Tuning ESM-2 with QLoRA
+# Training Protein Language Models
 
 ## Overview
 
-This project describes how to fine-tune the ESM-2 protein language model in Amazon SageMaker using Neuron, QLoRA, distributed training, and other advanced LLM methods..
+This project describes how to fine-tune the ESM-2 protein language model in Amazon SageMaker using Neuron, LoRA, distributed training, and other advanced LLM methods..
 
 ## FAQs
 
