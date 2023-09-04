@@ -144,6 +144,13 @@ def parse_args():
         default=10,
         help="Number of steps between logging updates.",
     )
+    parser.add_argument(
+        "--gradient_accumulation_steps",
+        type=int,
+        default=1,
+        help="Number of steps between gradient optimization.",
+    )
+
     args, _ = parser.parse_known_args()
     return args
 
@@ -284,7 +291,7 @@ def main(args):
         if is_root:
             print("\n### Train ###")
         model.train()
-        for batch in train_device_loader:
+        for idx, batch in enumerate(train_device_loader):
             train_loop_start_time = timer()
             progress_bar.update(1)
             batch = {
@@ -295,11 +302,15 @@ def main(args):
             loss = outputs.loss  # Calculate loss
             loss.backward()  # Calculate new gradients with backprop
             lr_scheduler.step()  # Update scheduler
-            xm.optimizer_step(optimizer)  # Gather updates
+
+            if ((idx + 1) % args.gradient_accumulation_steps == 0) or (
+                idx + 1 == num_update_steps_per_epoch
+            ):
+                xm.optimizer_step(optimizer)  # Gather updates
 
             completed_steps += 1
             # Report loss from root node
-            if completed_steps % args.logging_steps == 0:
+            if (idx+1) % args.logging_steps == 0:
                 ## ------- Only run for rank 0 process
                 if rank > 0:
                     torch.distributed.barrier()
