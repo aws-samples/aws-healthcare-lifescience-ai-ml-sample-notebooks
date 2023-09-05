@@ -1,5 +1,0 @@
-
-transformers
-torch
-torch-neuronx --extra-index-url https://pip.repos.neuron.amazonaws.com
-accelerate
