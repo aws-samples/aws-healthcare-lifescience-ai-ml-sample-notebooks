@@ -13,6 +13,7 @@
 
 import os
 import argparse
+import copy
 from datasets import load_from_disk, load_dataset, DatasetDict
 import math
 from timeit import default_timer as timer
@@ -26,12 +27,13 @@ import torch_xla.distributed.xla_backend
 from tqdm.auto import tqdm
 from transformers import (
     AutoTokenizer,
-    AutoModelForMaskedLM,
+    EsmForMaskedLM,
     DataCollatorForLanguageModeling,
     set_seed,
     get_scheduler,
     SchedulerType,
 )
+from transformers.models.esm.configuration_esm import get_default_vocab_list
 
 
 def parse_args():
@@ -135,6 +137,12 @@ def parse_args():
         type=int,
         default=None,
         help="Max number of steps.",
+    )
+    parser.add_argument(
+        "--pretrain",
+        type=int,
+        default=0,
+        help="Initialize random weights?",
     )
 
     args, _ = parser.parse_known_args()
@@ -252,8 +260,13 @@ def main(args):
     samples_processed_per_eval = total_eval_batch_size * num_eval_steps_per_epoch
     tokens_processed_per_eval = samples_processed_per_eval * args.max_length
 
-    ## Load and configure model
-    model = AutoModelForMaskedLM.from_pretrained(args.model_id)
+    ## Load model
+    model = EsmForMaskedLM.from_pretrained(args.model_id)
+    if args.pretrain:
+        my_config = copy.deepcopy(model.config)
+        my_config.vocab_list = get_default_vocab_list()
+        my_config.vocab_size = len(my_config.vocab_list)
+        model = EsmForMaskedLM(my_config)
     model.to(device)
     optimizer = AdamW(model.parameters(), args.lr)
     lr_scheduler = get_scheduler(
