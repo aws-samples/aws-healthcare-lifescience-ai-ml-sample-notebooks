@@ -29,7 +29,8 @@ from timeit import default_timer as timer
 import torch
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
+from torch.distributed.elastic.utils.data import ElasticDistributedSampler
+from datetime import timedelta
 from tqdm.auto import tqdm
 import json
 from transformers import (
@@ -154,12 +155,6 @@ def parse_args():
         help="Initialize random weights?",
     )
 
-    ########################## Step 1 : DDP related arguements ###########################
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
-    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
-    ########################## DDP related ###########################    
-
     args, _ = parser.parse_known_args()
     return args
 
@@ -191,83 +186,45 @@ def report_metrics(
     return None
 
 
-def worker(local_rank, args):
+
+if __name__ == "__main__":
     
     run_start = timer()
-
-    # Step 4: Compute the global rank (global_rank) of the spawned process as:
-    # =node_id*num_gpus + local_rank.
-    # To properly initialize and synchornize each process, 
-    # invoke dist.init_process_group with the approrpriate parameters:
-    # backend='nccl', world_size=WORLD_SIZE, rank=global_rank
-
-    world_size = len(args.hosts) * args.num_gpus
     
-    #ToDO : check below
-    os.environ['WORLD_SIZE'] = str(world_size)
-    print("[DDP] World Size is [{}]".format(world_size))
-
-    node_id = args.hosts.index(args.current_host)
-    global_rank = node_id * args.num_gpus + local_rank
-    os.environ['RANK'] = str(global_rank)
+    args = parse_args()
     
-    dist.init_process_group(backend="nccl", world_size=world_size, rank=global_rank)
-
-    print("[DDP] Initialized the distributed environment: {} backend on {} nodes. ".format(
-            'nccl', dist.get_world_size()) + 'Current host rank is {}. Number of gpus: {}'.format(
-            dist.get_rank(), args.num_gpus))   
-
-
+    local_rank=int(os.environ["LOCAL_RANK"])
+    world_size = int(os.environ["WORLD_SIZE"])
+    global_rank = int(os.environ["RANK"])
+    device_id = local_rank
+    
+    if local_rank == 0:
+        print("Local Rank is : {}".format(os.environ["LOCAL_RANK"]))
+        print("Worldsize is : {}".format(os.environ["WORLD_SIZE"]))
+        print("Rank is : {}".format(os.environ["RANK"]))
+        
+        print("Master address is : {}".format(os.environ['MASTER_ADDR']))
+        print("Master port is : {}".format(os.environ["MASTER_PORT"]))
+    
+    dist.init_process_group(backend="nccl", world_size=world_size, rank=global_rank, init_method="env://", timeout=timedelta(seconds=120))
+    
     if args.seed is not None:
         set_seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
-
-
-    # DDP Step 5: Download the data only once per host, however then running on SageMaker data already downloaded
-
-    # data_src = "bloyal/oas_paired_human_sars_cov_2"
-    # train_sample_count = args.train_sample_count
-    # test_sample_count = int(train_sample_count * 0.2)
-
-    # if local_rank == 0:
-    #     print("[DDP] Started Downloading data in host [{}] rank [{}]".format(args.current_host, local_rank))
-    #     train_dataset = load_dataset(path=args.training_dir, split=f"train[:{train_sample_count}]", download_mode="force_redownload")
-    #     test_dataset = load_dataset(path=args.test_dir, split=f"test[:{test_sample_count}]", download_mode="force_redownload")
-    #     print("[DDP] Finished Downloading data in host [{}] rank [{}]".format(args.current_host, local_rank))
-    # dist.barrier()
-    
-    # if local_rank != 0:
-    #     print("[DDP] Reusing Downloaded data in host [{}] rank [{}]".format(args.current_host, local_rank))
-    #     train_dataset = load_dataset(data_src, split=f"train[:{train_sample_count}]", download_mode="reuse_dataset_if_exists")
-    #     test_dataset = load_dataset(data_src, split=f"test[:{test_sample_count}]", download_mode="reuse_dataset_if_exists")
-    #     print("[DDP] Reused Downloaded data in host [{}] rank [{}]".format(args.current_host, local_rank))
-
+        
     train_dataset = load_from_disk(args.training_dir)
     test_dataset = load_from_disk(args.test_dir)
     
-    # DDP Step 6: Wrap training and validation data with DistributedSampler, and enable data shuffling
-    train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset,
-        num_replicas=world_size,
-        rank=global_rank,
-        shuffle=True
-    )
+    train_sampler = ElasticDistributedSampler(train_dataset, num_replicas=world_size, rank=global_rank)
+    test_sampler = ElasticDistributedSampler(test_dataset, num_replicas=world_size, rank=global_rank)
     
-    test_sampler = torch.utils.data.distributed.DistributedSampler(
-        test_dataset,
-        num_replicas=world_size,
-        rank=global_rank,
-        shuffle=True
-    )
-
-    print("[DDP] Train and test samplers set in host [{}] rank [{}]".format(args.current_host, local_rank))
-
     tokenizer = AutoTokenizer.from_pretrained(args.model_id)
     tokenizer.model_max_length = args.max_length
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer, mlm_probability=0.15
     )
+    
     train_loader = DataLoader(
         train_dataset,
         collate_fn=data_collator,
@@ -282,37 +239,7 @@ def worker(local_rank, args):
         sampler=test_sampler,
         shuffle=False if test_sampler else True,
     )
-
-
-
-    # 
-    # test_sample_count = int(train_sample_count * 0.2)
-    # train_dataset = load_dataset(src, split=f"train[:{train_sample_count}]")
-    # test_dataset = load_dataset(src, split=f"test[:{test_sample_count}]")
-    # dataset = DatasetDict({"train": train_dataset, "test": test_dataset}).rename_column(
-    #     "sequence_alignment_aa_heavy", "text"
-    # )
-    # tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
-    # sequence_length = 142
-    # encoded_dataset = dataset.map(
-    #     tokenize_data,
-    #     batched=True,
-    #     num_proc=os.cpu_count(),
-    #     remove_columns=dataset["train"].column_names,
-    #     fn_kwargs={
-    #         "tokenizer": tokenizer,
-    #         "sequence_length": sequence_length,
-    #     },
-    # )
-
-    # encoded_dataset.set_format("torch", columns=["input_ids", "attention_mask"])
-    # return encoded_dataset
-
-    # DDP Step 7: Modify the torch.device call from "cuda:0" to "cuda:<local_rank>" 
-    # to pin the process to its assigned GPU. 
-    device = torch.device("cuda:" + str(local_rank) if torch.cuda.is_available() else "cpu")
-    print("[DDP] Device identified in host [{}] rank [{}] as [{}]".format(args.current_host, local_rank, device))
-
+    
     ## Load model
     model = EsmForMaskedLM.from_pretrained(args.model_id)
     if args.pretrain:
@@ -321,13 +248,13 @@ def worker(local_rank, args):
         my_config.vocab_size = len(my_config.vocab_list)
         model = EsmForMaskedLM(my_config)
 
-    model.to(device)
-    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], find_unused_parameters=True)
-    print("[DDP] Model loaded in host [{}] rank [{}]".format(args.current_host, local_rank))
+    model.to(device_id)
+    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device_id], find_unused_parameters=True)
 
     # Define training metrics
     num_update_steps_per_epoch = len(train_loader)
     num_total_training_steps = args.num_epochs * num_update_steps_per_epoch
+
     total_train_batch_size = args.per_device_train_batch_size * world_size
     samples_processed_per_logging_update = total_train_batch_size * args.logging_steps
     tokens_processed_per_logging_update = (
@@ -364,14 +291,14 @@ def worker(local_rank, args):
 
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(
-        range(num_total_training_steps), disable=not local_rank == 0, miniters=1
+        range(num_total_training_steps), disable=not global_rank == 0, miniters=1
     )
     completed_steps = 0
     starting_epoch = 0
 
     # Start training loop
     for epoch in range(starting_epoch, args.num_epochs):
-        if local_rank == 0:
+        if global_rank == 0:
             print("######################### Train #########################")
 
         train_sampler.set_epoch(epoch)
@@ -381,7 +308,7 @@ def worker(local_rank, args):
             train_loop_start_time = timer()
             progress_bar.update(1)
             batch = {
-                k: v.to(device) for k, v, in batch.items()
+                k: v.to(device_id) for k, v, in batch.items()
             }  # Transfer data to accelerator
             outputs = model(**batch)  # Forward pass
             optimizer.zero_grad()  # Set all tensor gradients to zero
@@ -409,15 +336,16 @@ def worker(local_rank, args):
 
         dist.barrier()
 
-        if local_rank==0:
+        if global_rank==0:
             print("######################### Eval #########################")
+
         eval_start_time = timer()
-        
+
         model.eval()
         eval_running_loss = 0
         for batch in eval_loader:
             with torch.no_grad():
-                batch = {k: v.to(device) for k, v, in batch.items()}
+                batch = {k: v.to(device_id) for k, v, in batch.items()}
                 outputs = model(**batch)
             eval_loss = outputs.loss
             eval_running_loss += eval_loss.detach().float() / num_eval_steps_per_epoch
@@ -443,52 +371,3 @@ def worker(local_rank, args):
 
         print("##### Model saved to: ", f"{args.model_dir}/checkpoint.pt")
         print(f"Run completed in {timer() - run_start} sec.")
-
-
-def tokenize_data(examples, tokenizer, sequence_length):
-    encoding = tokenizer(
-        examples["text"],
-        padding="max_length",
-        truncation=True,
-        max_length=sequence_length,
-    )
-    return encoding
-
-
-def get_data(train_sample_count):
-    src = "bloyal/oas_paired_human_sars_cov_2"
-    test_sample_count = int(train_sample_count * 0.2)
-    train_dataset = load_dataset(src, split=f"train[:{train_sample_count}]")
-    test_dataset = load_dataset(src, split=f"test[:{test_sample_count}]")
-    dataset = DatasetDict({"train": train_dataset, "test": test_dataset}).rename_column(
-        "sequence_alignment_aa_heavy", "text"
-    )
-    tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
-    sequence_length = 142
-    encoded_dataset = dataset.map(
-        tokenize_data,
-        batched=True,
-        num_proc=os.cpu_count(),
-        remove_columns=dataset["train"].column_names,
-        fn_kwargs={
-            "tokenizer": tokenizer,
-            "sequence_length": sequence_length,
-        },
-    )
-
-    encoded_dataset.set_format("torch", columns=["input_ids", "attention_mask"])
-    return encoded_dataset
-
-
-if __name__ == "__main__":
-    args = parse_args()
-
-    ############# Step 2: Compute world size (WORLD_SIZE) using num_gpus and num_nodes
-    # and specify the IP address/port number for the node associated with the main process (global rank = 0):
-    master = json.loads(os.environ['SM_TRAINING_ENV'])['master_hostname']
-
-    print("[DDP] master address is [{}]".format(master))
-    os.environ['MASTER_ADDR'] = master
-    os.environ['MASTER_PORT'] = '7777' 
-    #####################################################
-    torch.multiprocessing.spawn(worker, nprocs=args.num_gpus, args=(args,))
