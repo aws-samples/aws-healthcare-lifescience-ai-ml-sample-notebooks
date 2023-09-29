@@ -122,3 +122,66 @@ def get_mean_plddt(structure):
             plddt = float(line[60:66].rstrip())
             plddts.append(plddt)
     return mean(plddts)
+
+
+def tmscore(ref_pdb, align_pdb, output_name):
+     
+    #Grab TM score
+    from tmtools.io import get_structure, get_residue_data
+    from tmtools import tm_align
+    import Bio.PDB
+    
+    ref_s = get_structure(ref_pdb)
+    align_s = get_structure(align_pdb)
+    chain1 = next(ref_s.get_chains())
+    chain2 = next(align_s.get_chains())
+    coords1, seq1 = get_residue_data(chain1)
+    coords2, seq2 = get_residue_data(chain2)
+    res = tm_align(coords1, coords2, seq1, seq2)
+    score = res.tm_norm_chain1
+ 
+
+    # Let's now align the structures
+    # Derived from https://gist.github.com/andersx/6354971
+    
+    # Select what residues numbers you wish to align
+    # and put them in a list
+    start_id = 1
+    end_id   = len(seq1)
+    atoms_to_be_aligned = range(start_id, end_id + 1)
+
+    # Use the first model in the pdb-files for alignment
+    # Change the number 0 if you want to align to another structure
+    ref_model    = ref_s[0]
+    sample_model = align_s[0]
+
+    # Make a list of the atoms (in the structures) you wish to align.
+    # In this case we use CA atoms whose index is in the specified range
+    ref_atoms = []
+    sample_atoms = []
+
+    # Iterate of all chains in the model in order to find all residues
+    for ref_chain in ref_model:
+      # Iterate of all residues in each model in order to find proper atoms
+      for ref_res in ref_chain:
+        # Check if residue number ( .get_id() ) is in the list
+        if ref_res.get_id()[1] in atoms_to_be_aligned:
+          # Append CA atom to list
+          ref_atoms.append(ref_res['CA'])
+
+    # Do the same for the sample structure
+    for sample_chain in sample_model:
+        for sample_res in sample_chain:
+            if sample_res.get_id()[1] in atoms_to_be_aligned:
+                sample_atoms.append(sample_res['CA'])
+
+    # Now we initiate the superimposer:
+    super_imposer = Bio.PDB.Superimposer()
+    super_imposer.set_atoms(ref_atoms, sample_atoms)
+    super_imposer.apply(sample_model.get_atoms())
+
+
+    io = Bio.PDB.PDBIO()
+    io.set_structure(sample_model) 
+    io.save(output_name)
+    return res.tm_norm_chain1
