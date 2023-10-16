@@ -46,6 +46,21 @@ from transformers.models.esm.configuration_esm import get_default_vocab_list
 ### 0. Import Torch Distributed Training
 import torch.distributed as dist
 
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.fsdp.fully_sharded_data_parallel import (
+    CPUOffload,
+    BackwardPrefetch,
+)
+from torch.distributed.fsdp.wrap import (
+    size_based_auto_wrap_policy,
+    enable_wrap,
+    wrap,
+    transformer_auto_wrap_policy
+)
+import functools
+from transformers.models.esm.modeling_esm import EsmLayer
+from torch.distributed.fsdp import ShardingStrategy
+
 
 def parse_args():
     """Parse the arguments."""
@@ -186,7 +201,10 @@ def report_metrics(
     return None
 
 
+def cleanup():
+    dist.destroy_process_group()
 
+    
 if __name__ == "__main__":
     
     run_start = timer()
@@ -240,6 +258,17 @@ if __name__ == "__main__":
         shuffle=False if test_sampler else True,
     )
     
+    auto_wrap_policy = functools.partial(
+        transformer_auto_wrap_policy, 
+        transformer_layer_cls = {
+            EsmLayer
+        }
+    )
+    
+    # auto_wrap_policy = functools.partial(
+    #     size_based_auto_wrap_policy
+    # )
+    
     ## Load model
     model = EsmForMaskedLM.from_pretrained(args.model_id)
     if args.pretrain:
@@ -247,9 +276,14 @@ if __name__ == "__main__":
         my_config.vocab_list = get_default_vocab_list()
         my_config.vocab_size = len(my_config.vocab_list)
         model = EsmForMaskedLM(my_config)
-
+    
+    torch.cuda.set_device(device_id)
+    
     model.to(device_id)
-    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device_id], find_unused_parameters=True)
+    model = FSDP(model, auto_wrap_policy=auto_wrap_policy, 
+                 sharding_strategy=ShardingStrategy.FULL_SHARD,
+                 cpu_offload=CPUOffload(offload_params=True),
+                 device_id=torch.cuda.current_device())
 
     # Define training metrics
     num_update_steps_per_epoch = len(train_loader)
@@ -360,14 +394,18 @@ if __name__ == "__main__":
             tokens_processed_per_eval,
             "Eval",
         )
-
+        
+    dist.barrier()
     # Save checkpoint for evaluation (xm.save ensures only one process save)
     if global_rank == 0:
         model = model.module if hasattr(model, "module") else model
         os.makedirs(args.model_dir, exist_ok=True)
+        
         checkpoint = {"state_dict": model.state_dict()}
         path = f"{args.model_dir}/checkpoint.pt"
         torch.save(checkpoint, path)
 
         print("##### Model saved to: ", f"{args.model_dir}/checkpoint.pt")
         print(f"Run completed in {timer() - run_start} sec.")
+        
+    cleanup()
