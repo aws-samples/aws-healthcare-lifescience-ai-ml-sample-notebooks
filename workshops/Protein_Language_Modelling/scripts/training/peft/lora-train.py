@@ -13,7 +13,6 @@ from peft import (
     prepare_model_for_kbit_training,
     PeftModel,
     PeftConfig,
-    PeftModelForSequenceClassification
 )
 import pynvml
 import shutil
@@ -21,7 +20,6 @@ import tempfile
 import torch
 from torchinfo import summary
 from transformers import (
-    AutoModelForSequenceClassification,
     AutoTokenizer,
     BitsAndBytesConfig,
     set_seed,
@@ -45,11 +43,7 @@ def main(args):
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_id)
 
-    data_collator = DataCollatorWithPadding(
-        tokenizer=tokenizer  # , padding="max_length", max_length=args.max_length
-    )
-
-    logging_steps = 16
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         training_args = TrainingArguments(
@@ -64,15 +58,12 @@ def main(args):
             gradient_checkpointing=args.use_gradient_checkpointing,
             logging_dir=f"{tmp_dir}/logs",
             logging_strategy="steps",
-            logging_steps=logging_steps,
+            logging_steps=16,
             evaluation_strategy="epoch",
             save_strategy="no",
             optim=args.optim,
             push_to_hub=False,
         )
-
-        train_dataset = (load_from_disk(args.train_dataset_path),)
-        print(train_dataset)
 
         # Create Trainer instance
         trainer = Trainer(
@@ -89,7 +80,6 @@ def main(args):
 
         gpu_memory_use = get_gpu_utilization()
         print(f"Max GPU memory use during training: {gpu_memory_use} MB")
-
         if args.lora:
             trainer.model.save_pretrained(tmp_dir)
             # clear memory
@@ -98,15 +88,13 @@ def main(args):
             torch.cuda.empty_cache()
             # load PEFT model in fp16
             peft_config = PeftConfig.from_pretrained(tmp_dir)
-            model = AutoModelForSequenceClassification.from_pretrained(
+            model = EsmForSequenceClassification.from_pretrained(
                 peft_config.base_model_name_or_path,
                 return_dict=True,
                 torch_dtype=torch.float16,
-                low_cpu_mem_usage=True,
                 problem_type="single_label_classification",
             )
             model = PeftModel.from_pretrained(model, tmp_dir)
-
             model.eval()
             # Merge LoRA and base model and save
             merged_model = model.merge_and_unload()
@@ -274,7 +262,9 @@ def get_model(
         id2label=id2label,
         label2id=label2id,
     )
-    print(summary(model))
+    print("Pretrained model architecture:")
+
+    summary(model)
 
     if lora:
         peft_config = LoraConfig(
@@ -286,13 +276,12 @@ def get_model(
             target_modules=["query", "key", "value"],
         )
 
-        if quantization:      
+        if quantization:
             model = prepare_model_for_kbit_training(model, use_gradient_checkpointing)
 
         model = get_peft_model(model, peft_config)
-
-    print(summary(model))
-    print(model)
+    print("Model architecture after processing with PEFT:")
+    summary(model)
 
     return model
 
