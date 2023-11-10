@@ -62,6 +62,7 @@ def main(args):
             evaluation_strategy="epoch",
             save_strategy="no",
             optim=args.optim,
+            weight_decay=0.01,
             push_to_hub=False,
         )
 
@@ -156,15 +157,15 @@ def parse_args():
     parser.add_argument(
         "--per_device_eval_batch_size",
         type=int,
-        default=16,
+        default=8,
         help="Batch size to use for evaluation.",
     )
     parser.add_argument(
-        "--optim", type=str, default="paged_adamw_8bit", help="Optimizer name"
+        "--optim", type=str, default="adamw_torch", help="Optimizer name"
     )
 
     parser.add_argument(
-        "--lr", type=float, default=5e-5, help="Learning rate to use for training."
+        "--lr", type=float, default=1e-4, help="Learning rate to use for training."
     )
     parser.add_argument(
         "--seed", type=int, default=42, help="Seed to use for training."

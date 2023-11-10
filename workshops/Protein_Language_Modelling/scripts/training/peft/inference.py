@@ -6,7 +6,15 @@ import torch
 
 
 def model_fn(model_dir):
-    model = EsmForSequenceClassification.from_pretrained(model_dir, device_map="auto")
+    id2label = {0: "Non-Membrane", 1: "Membrane"}
+    label2id = {"Non-Membrane": 0, "Membrane": 1}
+    model = EsmForSequenceClassification.from_pretrained(
+        model_dir,
+        device_map="auto",
+        num_labels=2,
+        id2label=id2label,
+        label2id=label2id,
+    )
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
     return model, tokenizer
