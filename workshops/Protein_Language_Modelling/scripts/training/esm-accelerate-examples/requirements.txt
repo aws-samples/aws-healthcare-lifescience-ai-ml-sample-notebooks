@@ -1,0 +1,7 @@
+transformers
+datasets
+accelerate
+torchinfo
+bitsandbytes
+nvidia-ml-py3
+peft==0.4.0
