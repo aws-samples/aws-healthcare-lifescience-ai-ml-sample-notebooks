@@ -31,3 +31,10 @@ LoRA + quantization enables us to use less GPU memory (VRAM) to train large lang
 [ESM-2](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v1) is a pLM trained using unsupervied masked language modelling on 250 Million protein sequences by researchers at [Facebook AI Research (FAIR)](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v1). It is available in several sizes, ranging from 8 Million to 15 Billion parameters. The smaller models are suitable for various sequence and token classification tasks. The FAIR team also adapted the 3 Billion parameter version into the ESMFold protein structure prediction algorithm. They have since used ESMFold to predict the struture of [more than 700 Million metagenomic proteins](https://esmatlas.com/about). 
 
 ESM-2 is a powerful pLM. However, it has traditionally required multiple A100 GPU chips to fine-tune. In this notebook, we demonstrate how to use QLoRA to fine-tune ESM-2 in on an inexpensive Amazon SageMaker training instance. We will use ESM-2 to predict [subcellular localization](https://academic.oup.com/nar/article/50/W1/W228/6576357). Understanding where proteins appear in cells can help us understand their role in disease and find new drug targets.
+
+## Additional Resources
+
+- [Awesome Protein Analysis on AWS](https://github.com/aws-samples/awesome-protein-analysis-on-aws)
+- [Guidance for Protein Folding on AWS](https://aws.amazon.com/solutions/guidance/protein-folding-on-aws/)
+- [Deep Learning with Proteins from Hugging Face blog](https://huggingface.co/blog/deep-learning-with-proteins)
+- [PEFT: Parameter-Efficient Fine-Tuning of Billion-Scale Models on Low-Resource Hardware from Hugging Face blog](https://huggingface.co/blog/peft)
