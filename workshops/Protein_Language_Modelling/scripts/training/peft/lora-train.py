@@ -231,10 +231,11 @@ def get_quant_config(quantization=None):
         return BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=True,
+            llm_int8_skip_modules=["classifier"],
         )
     elif quantization == "8bit":
         return BitsAndBytesConfig(
-            load_in_8bit=True,
+            load_in_8bit=True, llm_int8_skip_modules=["classifier"]
         )
     else:
         return None
@@ -271,10 +272,21 @@ def get_model(
         peft_config = LoraConfig(
             task_type=TaskType.SEQ_CLS,
             inference_mode=False,
+            bias="none",
             r=8,
-            lora_alpha=32,
+            lora_alpha=16,
             lora_dropout=0.05,
-            target_modules=["query", "key", "value"],
+            target_modules=[
+                "query",
+                "key",
+                "value",
+                "EsmSelfOutput.dense",
+                "EsmIntermediate.dense",
+                "EsmOutput.dense",
+                "EsmContactPredictionHead.regression",
+                "EsmClassificationHead.dense",
+                "EsmClassificationHead.out_proj",
+            ],
         )
 
         if quantization:
