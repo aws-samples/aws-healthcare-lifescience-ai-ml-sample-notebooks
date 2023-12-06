@@ -16,6 +16,7 @@ from peft import (
 )
 import pynvml
 import shutil
+from sklearn.utils.class_weight import compute_class_weight
 import tempfile
 import torch
 from torchinfo import summary
@@ -66,14 +67,24 @@ def main(args):
             push_to_hub=False,
         )
 
+        train_dataset = load_from_disk(args.train_dataset_path)
+        eval_dataset = load_from_disk(args.eval_dataset_path)
+
+        class_weights = compute_class_weight(
+            "balanced",
+            classes=np.unique(train_dataset["labels"]),
+            y=train_dataset["labels"].numpy(),
+        ).tolist()
         # Create Trainer instance
-        trainer = Trainer(
+        # trainer = Trainer(
+        trainer = WeightedTrainer(
             model=model,
             args=training_args,
-            train_dataset=load_from_disk(args.train_dataset_path),
-            eval_dataset=load_from_disk(args.eval_dataset_path),
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
+            class_weights=class_weights,
         )
 
         # Start training
@@ -226,11 +237,13 @@ def compute_metrics(eval_pred):
     return output
 
 
-def get_quant_config(quantization=None):
+def get_quant_config(quantization=None, dtype=torch.float16):
     if quantization == "4bit":
         return BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=dtype,
             llm_int8_skip_modules=["classifier"],
         )
     elif quantization == "8bit":
@@ -253,13 +266,15 @@ def get_model(
     id2label = {0: "Cytosolic", 1: "Membrane"}
     label2id = {"Cytosolic": 0, "Membrane": 1}
 
+    datatype = torch.bfloat16 if mixed_precision == "bf16" else torch.float16
+
     model = EsmForSequenceClassification.from_pretrained(
         model_name_or_path,
         from_tf=bool(".ckpt" in model_name_or_path),
         config=config,
         trust_remote_code=trust_remote_code,
-        quantization_config=get_quant_config(quantization),
-        torch_dtype=torch.bfloat16 if mixed_precision == "bf16" else torch.float16,
+        quantization_config=get_quant_config(quantization, datatype),
+        torch_dtype=datatype,
         num_labels=2,
         id2label=id2label,
         label2id=label2id,
@@ -305,6 +320,25 @@ def get_gpu_utilization():
     info = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
     return info.used // 1024**2
+
+
+class WeightedTrainer(Trainer):
+    def __init__(self, class_weights, *args, **kwargs):
+        self.class_weights = class_weights
+        super().__init__(*args, **kwargs)
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+        # compute custom loss
+        loss_fct = torch.nn.CrossEntropyLoss(
+            # weight=torch.tensor(self.class_weights, device=model.device)
+            weight=torch.tensor(self.class_weights, device=model.device)
+        )
+        loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
 
 
 if __name__ == "__main__":
