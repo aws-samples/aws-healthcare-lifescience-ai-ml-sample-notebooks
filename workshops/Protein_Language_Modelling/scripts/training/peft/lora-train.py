@@ -258,7 +258,7 @@ def get_model(
     model_name_or_path,
     config=None,
     trust_remote_code=False,
-    quantization=False,
+    quantization=None,
     lora=False,
     use_gradient_checkpointing=False,
     mixed_precision=None,
@@ -308,8 +308,8 @@ def get_model(
             model = prepare_model_for_kbit_training(model, use_gradient_checkpointing)
 
         model = get_peft_model(model, peft_config)
-    print("Model architecture after processing with PEFT:")
-    summary(model)
+        print("Model architecture after processing with PEFT:")
+        summary(model)
 
     return model
 
