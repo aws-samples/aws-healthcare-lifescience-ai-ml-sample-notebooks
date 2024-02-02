@@ -42,7 +42,6 @@ from transformers import (
     AutoConfig,
     AutoModelForMaskedLM,
     AutoTokenizer,
-    DataCollatorForLanguageModeling,
     HfArgumentParser,
     TrainingArguments,
     set_seed,
@@ -345,7 +344,6 @@ def main():
     # logger.info(f"Training/evaluation parameters {training_args}")
     # logger.info(f"Data parameters {data_args}")
 
-
     set_seed(training_args.seed)
 
     # Get the datasets: you can either provide your own CSV/JSON/TXT training and evaluation files (see below)
@@ -532,7 +530,7 @@ def load_and_tokenize_data(raw_datasets, tokenizer, training_args, data_args):
 
     column_names = list(raw_datasets["train"].features)
     text_column_name = "text" if "text" in column_names else column_names[0]
-    
+
     if "validation" not in raw_datasets.keys():
         raw_datasets = raw_datasets.train_test_split(test_size=0.05)
         raw_datasets["validation"] = raw_datasets.pop("test")

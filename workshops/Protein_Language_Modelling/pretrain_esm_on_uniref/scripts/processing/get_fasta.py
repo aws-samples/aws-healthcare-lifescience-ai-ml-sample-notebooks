@@ -201,6 +201,7 @@ def fasta_to_csv(
         _write_seq_record_to_csv(fasta_list, output_dir, fasta_idx + 1)
     return output_dir
 
+
 def _write_seq_record_to_csv(content_list, output_dir, index):
     output_path = os.path.join(output_dir, f"x{str(index).rjust(3, '0')}.csv")
     logging.info(f"Writing {len(content_list)} records to {output_path}")

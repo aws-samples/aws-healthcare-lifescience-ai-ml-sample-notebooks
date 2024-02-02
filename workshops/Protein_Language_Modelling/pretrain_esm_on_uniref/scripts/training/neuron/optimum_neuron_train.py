@@ -20,20 +20,20 @@ Here is the full list of checkpoints on the hub that can be fine-tuned by this s
 https://huggingface.co/models?filter=fill-mask
 """
 # You can also adapt this script on your own masked language modeling task. Pointers for this are left as comments.
-
+from dataclasses import dataclass, field
+import datasets
+from datasets import load_dataset
+import evaluate
+from itertools import chain
 import logging
 import math
+from optimum.neuron import NeuronTrainer
+from optimum.neuron import NeuronHfArgumentParser
+from optimum.neuron import NeuronTrainingArguments
+from optimum.neuron.distributed import lazy_load_for_parallelism
 import os
 import sys
-import warnings
-from dataclasses import dataclass, field
-from itertools import chain
 from typing import Optional
-
-import datasets
-import evaluate
-from datasets import load_dataset
-
 import transformers
 from transformers import (
     CONFIG_MAPPING,
@@ -46,13 +46,9 @@ from transformers import (
     set_seed,
 )
 from transformers.trainer_utils import get_last_checkpoint
-
 from transformers.utils.versions import require_version
+import warnings
 
-from optimum.neuron import NeuronTrainer as Trainer
-from optimum.neuron import NeuronHfArgumentParser as HfArgumentParser
-from optimum.neuron import NeuronTrainingArguments as TrainingArguments
-from optimum.neuron.distributed import lazy_load_for_parallelism
 
 logger = logging.getLogger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_MASKED_LM_MAPPING.keys())
@@ -256,12 +252,6 @@ class DataTrainingArguments:
     dataset_dir: Optional[str] = field(
         default=None, metadata={"help": "The input training data folder (a dir)."}
     )
-    # validation_dir: Optional[str] = field(
-    #     default=None,
-    #     metadata={
-    #         "help": "An optional input evaluation data folder to evaluate the perplexity on (a dir)."
-    #     },
-    # )
 
     #####
 
@@ -301,8 +291,8 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, TrainingArguments)
+    parser = NeuronHfArgumentParser(
+        (ModelArguments, DataTrainingArguments, NeuronTrainingArguments)
     )
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
@@ -323,10 +313,6 @@ def main():
                 "`token` and `use_auth_token` are both specified. Please set only the argument `token`."
             )
         model_args.token = model_args.use_auth_token
-
-    # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
-    # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    # send_example_telemetry("run_mlm", model_args, data_args)
 
     # Setup logging
     logging.basicConfig(
@@ -438,21 +424,6 @@ def main():
             train_test_split=data_args.validation_split_percentage
         )
         raw_datasets["validation"] = raw_datasets.pop("test")
-
-        # raw_datasets["validation"] = load_dataset(
-        #     extension,
-        #     data_files=data_files,
-        #     split=f"train[:{data_args.validation_split_percentage}%]",
-        #     cache_dir=model_args.cache_dir,
-        #     token=model_args.token,
-        # )
-        # raw_datasets["train"] = load_dataset(
-        #     extension,
-        #     data_files=data_files,
-        #     split=f"train[{data_args.validation_split_percentage}%:]",
-        #     cache_dir=model_args.cache_dir,
-        #     token=model_args.token,
-        # )
 
     # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
     # https://huggingface.co/docs/datasets/loading_datasets.
@@ -588,19 +559,23 @@ def main():
     # https://github.com/huggingface/transformers/issues/21118
     # https://github.com/huggingface/transformers/issues/24714
 
-    trainer = Trainer(
+    trainer = NeuronTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=compute_metrics
-        if training_args.do_eval and not is_torch_tpu_available()
-        else None,
-        preprocess_logits_for_metrics=preprocess_logits_for_metrics
-        if training_args.do_eval and not is_torch_tpu_available()
-        else None,
+        compute_metrics=(
+            compute_metrics
+            if training_args.do_eval and not is_torch_tpu_available()
+            else None
+        ),
+        preprocess_logits_for_metrics=(
+            preprocess_logits_for_metrics
+            if training_args.do_eval and not is_torch_tpu_available()
+            else None
+        ),
     )
 
     # Training
@@ -621,8 +596,6 @@ def main():
                 else len(train_dataset)
             )
             metrics["train_samples"] = min(max_train_samples, len(train_dataset))
-
-        # metrics["max_train_gpu_utilization"] = get_max_gpu_utilization()
 
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
@@ -656,9 +629,9 @@ def main():
         kwargs["dataset_tags"] = data_args.dataset_name
         if data_args.dataset_config_name is not None:
             kwargs["dataset_args"] = data_args.dataset_config_name
-            kwargs[
-                "dataset"
-            ] = f"{data_args.dataset_name} {data_args.dataset_config_name}"
+            kwargs["dataset"] = (
+                f"{data_args.dataset_name} {data_args.dataset_config_name}"
+            )
         else:
             kwargs["dataset"] = data_args.dataset_name
 
@@ -668,9 +641,9 @@ def main():
         trainer.create_model_card(**kwargs)
 
 
-def _mp_fn(index):
-    # For xla_spawn (TPUs)
-    main()
+# def _mp_fn(index):
+#     # For xla_spawn (TPUs)
+#     main()
 
 
 def load_and_tokenize_data(raw_datasets, tokenizer, training_args, data_args):
@@ -724,7 +697,7 @@ def load_and_tokenize_data(raw_datasets, tokenizer, training_args, data_args):
                     tokenize_function,
                     batched=True,
                     num_proc=data_args.preprocessing_num_workers,
-                    remove_columns=[text_column_name],
+                    remove_columns=column_names,
                     load_from_cache_file=not data_args.overwrite_cache,
                     desc="Running tokenizer on dataset line_by_line",
                 )
@@ -732,7 +705,7 @@ def load_and_tokenize_data(raw_datasets, tokenizer, training_args, data_args):
                 tokenized_datasets = raw_datasets.map(
                     tokenize_function,
                     batched=True,
-                    remove_columns=[text_column_name],
+                    remove_columns=column_names,
                 )
     else:
         # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
