@@ -1,0 +1,8 @@
+accelerate==0.26.1
+boto3==1.34.19
+botocore==1.34.19
+datasets==2.16.1
+sagemaker==2.203.1
+transformers==4.36.2
+nvidia-ml-py3==7.352.0
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cu118

@@ -11,17 +11,9 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-# model_checkpoint="facebook/esm2_t48_15B_UR50D" # 15B params
-# model_checkpoint="facebook/esm2_t36_3B_UR50D"
-# model_checkpoint="facebook/esm2_t33_650M_UR50D"
-# model_checkpoint="facebook/esm2_t30_150M_UR50D"
-# model_checkpoint="facebook/esm2_t12_35M_UR50D"
-# model_checkpoint = "facebook/esm2_t6_8M_UR50D"  # 8M params
-
-# torchrun train.py --train_sample_count=50000 --model_id="facebook/esm2_t33_650M_UR50D" --num_epochs=3
-
 import os
 import argparse
+import copy
 from datasets import load_from_disk, load_dataset, DatasetDict
 import math
 from timeit import default_timer as timer
@@ -29,35 +21,31 @@ import torch
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+import torch_xla.core.xla_model as xm
+import torch_xla.distributed.parallel_loader as pl
+import torch_xla.distributed.xla_backend
 from tqdm.auto import tqdm
 from transformers import (
     AutoTokenizer,
-    AutoModelForMaskedLM,
+    EsmForMaskedLM,
     DataCollatorForLanguageModeling,
     set_seed,
     get_scheduler,
     SchedulerType,
 )
-
-## SageMaker Distributed code.
-from smdistributed.dataparallel.torch.parallel.distributed import (
-    DistributedDataParallel as DDP,
-)
-import smdistributed.dataparallel.torch.distributed as dist
-
-dist.init_process_group()
+from transformers.models.esm.configuration_esm import get_default_vocab_list
 
 
 def parse_args():
     """Parse the arguments."""
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--eval_dir",
-        type=str,
-        default=os.environ["SM_CHANNEL_TEST"],
-        help="Path to evaluation dataset.",
-    )
+    # parser.add_argument(
+    #     "--eval_dir",
+    #     type=str,
+    #     default=os.environ["SM_CHANNEL_TEST"],
+    #     help="Path to evaluation dataset.",
+    # )
     parser.add_argument(
         "--lr", type=float, default=5e-5, help="Learning rate to use for training."
     )
@@ -78,7 +66,7 @@ def parse_args():
     parser.add_argument(
         "--max_length",
         type=int,
-        default=142,
+        default=256,
         help="Max length of sequence for collator.",
     )
     parser.add_argument(
@@ -150,6 +138,12 @@ def parse_args():
         default=None,
         help="Max number of steps.",
     )
+    parser.add_argument(
+        "--pretrain",
+        type=int,
+        default=0,
+        help="Initialize random weights?",
+    )
 
     args, _ = parser.parse_known_args()
     return args
@@ -183,44 +177,39 @@ def report_metrics(
 
 
 def main(args):
+    
+    for root, dirs, files in os.walk(".", topdown=False):
+       for name in files:
+          print(os.path.join(root, name))
+            
     run_start = timer()
     if args.seed is not None:
         set_seed(args.seed)
-        torch.manual_seed(args.seed)
-        torch.cuda.manual_seed(args.seed)
 
-    device = torch.device("cuda")
+    device = "xla"
 
-    world_size = dist.get_world_size()
-    rank = dist.get_rank()
-    local_rank = dist.get_local_rank()
-
-    print(f"Start running DDP on rank {rank}.")
-
-    ## Load model
-    model = AutoModelForMaskedLM.from_pretrained(args.model_id)
-    model.to(device)
-    model = DDP(model, find_unused_parameters=True)
-    torch.cuda.set_device(local_rank)
-    model.cuda(local_rank)
-
+    world_size = int(os.environ.get("WORLD_SIZE"))
+    rank = int(os.environ.get("RANK"))
     is_root = rank == 0
+
+    if world_size:
+        torch.distributed.init_process_group(device)
 
     if args.train_sample_count is not None:
         if rank > 0:
             torch.distributed.barrier()
-        dataset = get_data(args.train_sample_count)
+        dataset = get_data(args.train_sample_count, args.max_length)
         train_dataset = dataset["train"]
         eval_dataset = dataset["test"]
         if rank == 0:
             torch.distributed.barrier()
     else:
-        train_dataset = load_from_disk(args.training_dir)
-        eval_dataset = load_from_disk(args.eval_dir)
+        train_dataset = load_from_disk(args.training_dir)['train']
+        # eval_dataset = load_from_disk(args.eval_dir)
 
     if is_root:
         print(f"Loaded train_dataset length is: {len(train_dataset)}")
-        print(f"Loaded test_dataset length is: {len(eval_dataset)}")
+        # print(f"Loaded test_dataset length is: {len(eval_dataset)}")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_id)
     tokenizer.model_max_length = args.max_length
@@ -237,12 +226,12 @@ def main(args):
             rank=rank,
             shuffle=True,
         )
-        eval_sampler = DistributedSampler(
-            eval_dataset,
-            num_replicas=world_size,
-            rank=rank,
-            shuffle=True,
-        )
+        # eval_sampler = DistributedSampler(
+        #     eval_dataset,
+        #     num_replicas=world_size,
+        #     rank=rank,
+        #     shuffle=True,
+        # )
 
     train_loader = DataLoader(
         train_dataset,
@@ -251,15 +240,16 @@ def main(args):
         sampler=train_sampler,
         shuffle=False if train_sampler else True,
     )
-    eval_loader = DataLoader(
-        eval_dataset,
-        collate_fn=data_collator,
-        batch_size=args.per_device_eval_batch_size,
-        sampler=eval_sampler,
-        shuffle=False if eval_sampler else True,
-    )
+    # eval_loader = DataLoader(
+    #     eval_dataset,
+    #     collate_fn=data_collator,
+    #     batch_size=args.per_device_eval_batch_size,
+    #     sampler=eval_sampler,
+    #     shuffle=False if eval_sampler else True,
+    # )
 
     # Define training metrics
+    train_device_loader = pl.MpDeviceLoader(train_loader, device)
     num_update_steps_per_epoch = len(train_loader)
     num_total_training_steps = args.num_epochs * num_update_steps_per_epoch
     total_train_batch_size = args.per_device_train_batch_size * world_size
@@ -269,13 +259,19 @@ def main(args):
     )
 
     # Define eval metrics
-    num_eval_steps_per_epoch = len(eval_loader)
-    total_eval_batch_size = args.per_device_eval_batch_size * world_size
-    samples_processed_per_eval = total_eval_batch_size * num_eval_steps_per_epoch
-    tokens_processed_per_eval = samples_processed_per_eval * args.max_length
+    # eval_device_loader = pl.MpDeviceLoader(eval_loader, device)
+    # num_eval_steps_per_epoch = len(eval_loader)
+    # total_eval_batch_size = args.per_device_eval_batch_size * world_size
+    # samples_processed_per_eval = total_eval_batch_size * num_eval_steps_per_epoch
+    # tokens_processed_per_eval = samples_processed_per_eval * args.max_length
 
-    ## Load and configure model
-    model = AutoModelForMaskedLM.from_pretrained(args.model_id)
+    ## Load model
+    model = EsmForMaskedLM.from_pretrained(args.model_id)
+    if args.pretrain:
+        my_config = copy.deepcopy(model.config)
+        my_config.vocab_list = get_default_vocab_list()
+        my_config.vocab_size = len(my_config.vocab_list)
+        model = EsmForMaskedLM(my_config)
     model.to(device)
     optimizer = AdamW(model.parameters(), args.lr)
     lr_scheduler = get_scheduler(
@@ -309,7 +305,7 @@ def main(args):
         if is_root:
             print("######################### Train #########################")
         model.train()
-        for idx, batch in enumerate(train_loader):
+        for idx, batch in enumerate(train_device_loader):
             train_loop_start_time = timer()
             progress_bar.update(1)
             batch = {
@@ -324,67 +320,78 @@ def main(args):
             if ((idx + 1) % args.gradient_accumulation_steps == 0) or (
                 idx + 1 == num_update_steps_per_epoch
             ):
-                optimizer.step()
+                xm.optimizer_step(optimizer)  # Gather updates
 
             completed_steps += 1
             if (idx + 1) % args.logging_steps == 0:
-                report_metrics(
-                    rank,
-                    train_loop_start_time,
-                    loss,
-                    epoch,
-                    completed_steps,
-                    samples_processed_per_logging_update,
-                    tokens_processed_per_logging_update,
-                    "Training",
+                xm.add_step_closure(
+                    report_metrics,
+                    (
+                        rank,
+                        train_loop_start_time,
+                        loss,
+                        epoch,
+                        completed_steps,
+                        samples_processed_per_logging_update,
+                        tokens_processed_per_logging_update,
+                        "Training",
+                    ),
                 )
+            if idx == args.steps_this_run:
+                break
 
-        if is_root:
-            print("######################### Eval #########################")
-        eval_start_time = timer()
-        model.eval()
-        eval_running_loss = 0
-        for batch in eval_loader:
-            with torch.no_grad():
-                batch = {k: v.to(device) for k, v, in batch.items()}
-                outputs = model(**batch)
-            eval_loss = outputs.loss
-            eval_running_loss += eval_loss.detach().float() / num_eval_steps_per_epoch
-
-        report_metrics(
-            rank,
-            eval_start_time,
-            eval_running_loss,
-            epoch,
-            completed_steps,
-            samples_processed_per_eval,
-            tokens_processed_per_eval,
-            "Eval",
-        )
+        # if is_root:
+        #     print("######################### Eval #########################")
+        # eval_start_time = timer()
+        # model.eval()
+        # eval_running_loss = 0
+        # for batch in eval_device_loader:
+        #     with torch.no_grad():
+        #         batch = {k: v.to(device) for k, v, in batch.items()}
+        #         outputs = model(**batch)
+        #     eval_loss = outputs.loss
+        #     eval_running_loss += eval_loss.detach().float() / num_eval_steps_per_epoch
+        # xm.add_step_closure(
+        #     report_metrics,
+        #     (
+        #         rank,
+        #         eval_start_time,
+        #         eval_running_loss,
+        #         epoch,
+        #         completed_steps,
+        #         samples_processed_per_eval,
+        #         tokens_processed_per_eval,
+        #         "Eval",
+        #     ),
+        # )
 
     # Save checkpoint for evaluation (xm.save ensures only one process save)
-    if is_root:
-        model = model.module if hasattr(model, "module") else model
-        os.makedirs(args.model_dir, exist_ok=True)
-        checkpoint = {"state_dict": model.state_dict()}
-        path = f"{args.model_dir}/checkpoint.pt"
-        torch.save(checkpoint, path)
+    os.makedirs(args.model_dir, exist_ok=True)
+    checkpoint = {"state_dict": model.state_dict()}
+    path = f"{args.model_dir}/checkpoint.pt"
+    xm.save(checkpoint, path)
 
+    if is_root:
         print("##### Model saved to: ", f"{args.model_dir}/checkpoint.pt")
         print(f"Run completed in {timer() - run_start} sec.")
 
 
-def tokenize_data(examples, tokenizer, sequence_length):
-    encoding = tokenizer(
-        examples["text"],
-        padding="max_length",
-        truncation=True,
-        max_length=sequence_length,
-    )
-    return encoding
+def group_seqs(examples, block_size=512):
+    # Concatenate all texts.
+    concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
+    total_length = len(concatenated_examples[list(examples.keys())[0]])
+    # We drop the small remainder
+    if total_length >= block_size:
+        total_length = (total_length // block_size) * block_size
+    # Split by chunks of block_size.
+    result = {
+        k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
+        for k, t in concatenated_examples.items()
+    }
+    return result
 
 
-def get_data(train_sample_count):
+def get_data(train_sample_count, max_length=512):
     src = "bloyal/oas_paired_human_sars_cov_2"
     test_sample_count = int(train_sample_count * 0.2)
     train_dataset = load_dataset(src, split=f"train[:{train_sample_count}]")
@@ -393,20 +400,26 @@ def get_data(train_sample_count):
         "sequence_alignment_aa_heavy", "text"
     )
     tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
-    sequence_length = 142
+
+    def tokenize_data(examples):
+        return tokenizer(examples["text"])
+
     encoded_dataset = dataset.map(
         tokenize_data,
         batched=True,
         num_proc=os.cpu_count(),
         remove_columns=dataset["train"].column_names,
-        fn_kwargs={
-            "tokenizer": tokenizer,
-            "sequence_length": sequence_length,
-        },
     )
 
-    encoded_dataset.set_format("torch", columns=["input_ids", "attention_mask"])
-    return encoded_dataset
+    grouped_dataset = encoded_dataset.map(
+        group_seqs,
+        batched=True,
+        num_proc=os.cpu_count(),
+        fn_kwargs={"max_length": max_length},
+    )
+    grouped_dataset.set_format("torch", columns=["input_ids", "attention_mask"])
+
+    return grouped_dataset
 
 
 if __name__ == "__main__":
