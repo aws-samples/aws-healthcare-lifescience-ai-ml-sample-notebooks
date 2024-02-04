@@ -97,7 +97,9 @@ def main(args):
         if args.save_csv
         else os.path.join(tmp_dir.name, "csv")
     )
-    csv_path = fasta_to_csv(fasta_path, csv_dir)
+    csv_path = fasta_to_csv(
+        fasta_path, csv_dir, args.max_records_per_partition
+    )
 
     if args.save_arrow or args.save_parquet:
         logging.info("Loading csv files into dataset")
@@ -177,7 +179,10 @@ def download(source: str, filename: str) -> str:
 
 
 def fasta_to_csv(
-    fasta: str, output_dir: str = "csv", max_records_per_file=2000000, shuffle=False
+    fasta: str,
+    output_dir: str = "csv",
+    max_records_per_partition=2000000,
+    shuffle=False,
 ) -> list:
     """Split a .fasta or .fasta.gz file into multiple .csv files."""
 
@@ -191,10 +196,11 @@ def fasta_to_csv(
         enumerate(pyfastx.Fasta(fasta, build_index=False, uppercase=True))
     ):
         fasta_list.append(seq)
-        if i % max_records_per_file == 0 and i != 0:
+
+        if (i + 1) % max_records_per_partition == 0:            
             if shuffle:
                 random.shuffle(fasta_list)
-            fasta_idx = int(i / max_records_per_file)
+            fasta_idx = int(i / max_records_per_partition)
             _write_seq_record_to_csv(fasta_list, output_dir, fasta_idx)
             fasta_list = []
     else:
