@@ -63,7 +63,7 @@ def parse_args():
     parser.add_argument(
         "--preprocessing_num_workers",
         type=int,
-        default=os.cpu_count(),
+        default=8,
         help="The number of workers to use for the preprocessing.",
     )
     parser.add_argument(
@@ -138,7 +138,7 @@ def main(args):
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(args.tokenizer_name)
 
-    if args.line_by_line:
+    if args.line_by_line == True:
         logging.info("Processing line by line")
 
         # When using line_by_line, we just tokenize each nonempty line.

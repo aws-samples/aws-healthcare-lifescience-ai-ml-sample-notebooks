@@ -1,1 +1,6 @@
-evaluate
+--extra-index-url https://pip.repos.neuron.amazonaws.com
+transformers==4.37.2 
+datasets==2.16.1
+evaluate==0.4.1
+neuronx-cc==2.* 
+--pre torch-neuronx==2.1.* 

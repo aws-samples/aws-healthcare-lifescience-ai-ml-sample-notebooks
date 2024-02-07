@@ -20,20 +20,16 @@ Here is the full list of checkpoints on the hub that can be fine-tuned by this s
 https://huggingface.co/models?filter=fill-mask
 """
 # You can also adapt this script on your own masked language modeling task. Pointers for this are left as comments.
-
+from dataclasses import dataclass, field
+import datasets
+from datasets import load_dataset
+import evaluate
+from itertools import chain
 import logging
 import math
 import os
 import sys
-import warnings
-from dataclasses import dataclass, field
-from itertools import chain
 from typing import Optional
-
-import datasets
-import evaluate
-from datasets import load_dataset
-
 import transformers
 from transformers import (
     CONFIG_MAPPING,
@@ -50,6 +46,7 @@ from transformers import (
 )
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
+import warnings
 
 logger = logging.getLogger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_MASKED_LM_MAPPING.keys())

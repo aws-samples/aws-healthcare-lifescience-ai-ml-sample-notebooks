@@ -49,11 +49,12 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 import warnings
 
-
 logger = logging.getLogger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_MASKED_LM_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
 
+os.environ['FI_EFA_FORK_SAFE'] = 1
+os.environ['NEURON_CC_FLAGS'] = os.environ.get('NEURON_CC_FLAGS', '') + ' --model-type transformer'
 
 @dataclass
 class ModelArguments:
@@ -417,6 +418,8 @@ def main():
             cache_dir=model_args.cache_dir,
             token=model_args.token,
         )
+    
+    # raw_datasets = raw_datasets.flatten_indices(num_proc=os.cpu_count())
 
         # If no validation data is there, validation_split_percentage will be used to divide the dataset.
     if "validation" not in raw_datasets.keys() and training_args.do_eval:
@@ -508,6 +511,7 @@ def main():
         if "train" not in tokenized_datasets:
             raise ValueError("--do_train requires a train dataset")
         train_dataset = tokenized_datasets["train"]
+        # train_dataset = tokenized_datasets["train"].with_format("torch")
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
@@ -516,6 +520,8 @@ def main():
         if "validation" not in tokenized_datasets:
             raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = tokenized_datasets["validation"]
+        # eval_dataset = tokenized_datasets["validation"].with_format("torch")
+
         if data_args.max_eval_samples is not None:
             max_eval_samples = min(len(eval_dataset), data_args.max_eval_samples)
             eval_dataset = eval_dataset.select(range(max_eval_samples))
@@ -641,9 +647,9 @@ def main():
         trainer.create_model_card(**kwargs)
 
 
-# def _mp_fn(index):
-#     # For xla_spawn (TPUs)
-#     main()
+def _mp_fn(index):
+    # For xla_spawn (TPUs)
+    main()
 
 
 def load_and_tokenize_data(raw_datasets, tokenizer, training_args, data_args):

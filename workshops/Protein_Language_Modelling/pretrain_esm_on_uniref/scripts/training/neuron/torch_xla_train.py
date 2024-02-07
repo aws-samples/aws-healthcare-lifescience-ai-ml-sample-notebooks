@@ -35,17 +35,12 @@ from transformers import (
 )
 from transformers.models.esm.configuration_esm import get_default_vocab_list
 
+os.environ['FI_EFA_FORK_SAFE'] = '1'
 
 def parse_args():
     """Parse the arguments."""
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--eval_dir",
-        type=str,
-        default=os.environ["SM_CHANNEL_VALIDATION"],
-        help="Path to evaluation dataset.",
-    )
     parser.add_argument(
         "--lr", type=float, default=5e-5, help="Learning rate to use for training."
     )
@@ -66,13 +61,13 @@ def parse_args():
     parser.add_argument(
         "--max_length",
         type=int,
-        default=256,
+        default=512,
         help="Max length of sequence for collator.",
     )
     parser.add_argument(
         "--model_dir",
         type=str,
-        default=os.environ["SM_MODEL_DIR"],
+        default="/opt/ml/model",
         help="Path to model output folder.",
     )
     parser.add_argument(
@@ -109,10 +104,10 @@ def parse_args():
         help="Random seed.",
     )
     parser.add_argument(
-        "--training_dir",
+        "--data_dir",
         type=str,
-        default=os.environ["SM_CHANNEL_TRAIN"],
-        help="Path to train dataset.",
+        default="/opt/ml/input/data/training",
+        help="Path to training dataset.",
     )
     parser.add_argument(
         "--logging_steps",
@@ -140,8 +135,8 @@ def parse_args():
     )
     parser.add_argument(
         "--pretrain",
-        type=int,
-        default=0,
+        type=bool,
+        default=True,
         help="Initialize random weights?",
     )
 
@@ -178,9 +173,9 @@ def report_metrics(
 
 def main(args):
 
-    for root, dirs, files in os.walk(".", topdown=False):
-        for name in files:
-            print(os.path.join(root, name))
+    # for root, dirs, files in os.walk(".", topdown=False):
+    #     for name in files:
+    #         print(os.path.join(root, name))
 
     run_start = timer()
     if args.seed is not None:
@@ -195,10 +190,10 @@ def main(args):
     if world_size:
         torch.distributed.init_process_group(device)
 
-    train_dataset = load_from_disk(args.training_dir)["train"]
+    train_dataset = load_from_disk(args.data_dir)["train"]
     if args.train_sample_count is not None:
         train_dataset = train_dataset[: args.train_sample_count]
-    eval_dataset = load_from_disk(args.eval_dir)["validation"]
+    eval_dataset = load_from_disk(args.data_dir)["validation"]
 
     if is_root:
         print(f"Loaded train_dataset length is: {len(train_dataset)}")
@@ -230,6 +225,9 @@ def main(args):
         train_dataset,
         collate_fn=data_collator,
         batch_size=args.per_device_train_batch_size,
+        num_workers=4,
+        persistent_workers=True,
+        pin_memory=True,
         sampler=train_sampler,
         shuffle=False if train_sampler else True,
     )
@@ -237,6 +235,9 @@ def main(args):
         eval_dataset,
         collate_fn=data_collator,
         batch_size=args.per_device_eval_batch_size,
+        num_workers=4,
+        persistent_workers=True,
+        pin_memory=True,
         sampler=eval_sampler,
         shuffle=False if eval_sampler else True,
     )
@@ -260,7 +261,7 @@ def main(args):
 
     ## Load model
     model = EsmForMaskedLM.from_pretrained(args.model_id)
-    if args.pretrain:
+    if args.pretrain == True:
         my_config = copy.deepcopy(model.config)
         my_config.vocab_list = get_default_vocab_list()
         my_config.vocab_size = len(my_config.vocab_list)
