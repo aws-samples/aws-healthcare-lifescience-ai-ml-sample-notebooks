@@ -35,7 +35,8 @@ from transformers import (
 )
 from transformers.models.esm.configuration_esm import get_default_vocab_list
 
-os.environ['FI_EFA_FORK_SAFE'] = '1'
+os.environ["FI_EFA_FORK_SAFE"] = "1"
+
 
 def parse_args():
     """Parse the arguments."""
@@ -173,10 +174,6 @@ def report_metrics(
 
 def main(args):
 
-    # for root, dirs, files in os.walk(".", topdown=False):
-    #     for name in files:
-    #         print(os.path.join(root, name))
-
     run_start = timer()
     if args.seed is not None:
         set_seed(args.seed)
@@ -299,8 +296,9 @@ def main(args):
         if is_root:
             print("######################### Train #########################")
         model.train()
+        train_loop_start_time = timer()
         for idx, batch in enumerate(train_device_loader):
-            train_loop_start_time = timer()
+            # train_loop_start_time = timer()
             progress_bar.update(1)
             batch = {
                 k: v.to(device) for k, v, in batch.items()
@@ -331,6 +329,7 @@ def main(args):
                         "Training",
                     ),
                 )
+                train_loop_start_time = timer()
             if idx == args.steps_this_run:
                 break
 

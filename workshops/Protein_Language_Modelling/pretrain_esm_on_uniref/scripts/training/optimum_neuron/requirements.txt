@@ -1,7 +1,0 @@
-transformers
-datasets
-evaluate
-optimum-neuron @ git+https://github.com/brianloyal/optimum-neuron.git
-neuronx-cc==2.* --extra-index-url https://pip.repos.neuron.amazonaws.com
---pre torch-neuronx==2.1.* 
-torchvision
