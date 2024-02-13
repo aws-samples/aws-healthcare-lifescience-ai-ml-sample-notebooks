@@ -300,6 +300,7 @@ def main(args):
         if is_root:
             print("######################### Train #########################")
         model.train()
+        train_loop_start_time = timer()
         for idx, batch in enumerate(train_device_loader):
             train_loop_start_time = timer()
             progress_bar.update(1)
@@ -332,6 +333,7 @@ def main(args):
                         "Training",
                     ),
                 )
+                train_loop_start_time = timer()
             if idx == args.steps_this_run:
                 break
 
