@@ -1,4 +1,3 @@
-
 import os
 import json
 import torch
@@ -10,6 +9,7 @@ JSON_CONTENT_TYPE = "application/json"
 # MODEL_ID = "facebook/esm2_t12_35M_UR50D"
 MODEL_ID = "facebook/esm2_t6_8M_UR50D"
 
+
 def model_fn(model_dir):
     """Load the model from HuggingFace"""
     print(f"torch-neuronx version is {torch_neuronx.__version__}")
@@ -18,9 +18,10 @@ def model_fn(model_dir):
     neuron_model = torch.jit.load(model_file)
     return (neuron_model, tokenizer_init)
 
+
 def input_fn(serialized_input_data, content_type=JSON_CONTENT_TYPE):
-    """ Process the request payload """
-    
+    """Process the request payload"""
+
     if content_type == JSON_CONTENT_TYPE:
         input_data = json.loads(serialized_input_data)
         return input_data.pop("inputs", input_data)
@@ -30,8 +31,8 @@ def input_fn(serialized_input_data, content_type=JSON_CONTENT_TYPE):
 
 
 def predict_fn(input_data, model_and_tokenizer):
-    """ Run model inference """
-    
+    """Run model inference"""
+
     model_bert, tokenizer = model_and_tokenizer
     max_length = 128
     tokenized_sequence = tokenizer.encode_plus(
@@ -46,7 +47,9 @@ def predict_fn(input_data, model_and_tokenizer):
         tokenized_sequence["attention_mask"],
     )
     output = neuron_model(*prediction_input)[0]
-    mask_token_index = (tokenized_sequence.input_ids == tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
+    mask_token_index = (tokenized_sequence.input_ids == tokenizer.mask_token_id)[
+        0
+    ].nonzero(as_tuple=True)[0]
     mask_index_predictions = output[0, mask_token_index]
     sigmoid = torch.nn.Sigmoid()
     probs = sigmoid(mask_index_predictions)
@@ -57,7 +60,7 @@ def predict_fn(input_data, model_and_tokenizer):
 
 
 def output_fn(prediction_output, accept=JSON_CONTENT_TYPE):
-    """ Process the response payload """
+    """Process the response payload"""
     if accept == JSON_CONTENT_TYPE:
         return json.dumps(prediction_output), accept
 
