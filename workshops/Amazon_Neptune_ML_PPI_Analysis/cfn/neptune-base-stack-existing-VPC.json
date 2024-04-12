@@ -1,0 +1,835 @@
+{
+    "Description": "Base Template to create Neptune Stack inside a VPC",
+    "Parameters": {
+        "Env": {
+            "Description": "Environment tag, e.g. prod, nonprod.",
+            "Default": "test",
+            "Type": "String",
+            "AllowedPattern": "[a-z0-9]+",
+            "MaxLength": 15
+        },
+        "DBClusterId": {
+            "Description": "OPTIONAL: Enter the Cluster id of your Neptune cluster. Empty means we create one for your cluster.",
+            "Default": "",
+            "Type": "String",
+            "MaxLength": 63
+        },
+        "DbInstanceType": {
+            "Description": "Neptune DB instance type",
+            "Type": "String",
+            "Default": "db.serverless",
+            "AllowedValues": [
+                "db.serverless",
+                "db.t3.medium",
+                "db.r6g.large",
+                "db.r6g.xlarge",
+                "db.r6g.2xlarge",
+                "db.r6g.4xlarge",
+                "db.r6g.8xlarge",
+                "db.r5.large",
+                "db.r5.xlarge",
+                "db.r5.2xlarge",
+                "db.r5.4xlarge",
+                "db.r5.8xlarge",
+                "db.r5.12xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid Neptune instance type."
+        },
+        "MinNCUs": {
+            "Description": "Min NCUs to be set on the Neptune cluster(Should be less than or equal to MaxNCUs). Required if DBInstance type is db.serverless",
+            "Default": 2.5,
+            "Type": "Number",
+            "MinValue": 1,
+            "MaxValue": 128,
+            "ConstraintDescription": "Must be a valid value between 1 and 128."
+        },
+        "MaxNCUs": {
+            "Description": "Max NCUs to be set on the Neptune cluster(Should be greater than or equal to MinNCUs). Required if DBInstance type is db.serverless",
+            "Default": 128,
+            "Type": "Number",
+            "MinValue": 1,
+            "MaxValue": 128,
+            "ConstraintDescription": "Must be a valid value between 1 and 128."
+        },
+        "DBReplicaIdentifierSuffix": {
+            "Description": "OPTIONAL: The ID for the Neptune Replica to use. Empty means no read replica.",
+            "Type": "String",
+            "Default": ""
+        },
+        "DBClusterPort": {
+            "Type": "String",
+            "Default": "8182",
+            "Description": "Enter the port of your Neptune cluster"
+        },
+        "NeptuneQueryTimeout": {
+            "Type": "Number",
+            "Default": 20000,
+            "Description": "Neptune Query Time out (in milliseconds)"
+        },
+        "NeptuneEnableAuditLog": {
+            "Type": "Number",
+            "Default": 0,
+            "AllowedValues": [
+                0,
+                1
+            ],
+            "Description": "Enable Audit Log. 0 means disable and 1 means enable."
+        },
+        "IamAuthEnabled": {
+            "Type": "String",
+            "Default": "false",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Description": "Enable IAM Auth for Neptune."
+        },
+        "AttachBulkloadIAMRoleToNeptuneCluster": {
+            "Type": "String",
+            "Default": "true",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Description": "Attach Bulkload IAM role to cluster"
+        },
+        "StorageEncrypted": {
+            "Description": "Enable Encryption for Neptune.",
+            "Type": "String",
+            "Default": "true",
+            "AllowedValues": [
+                "true",
+                "false"
+            ]
+        },
+        "KmsKeyId": {
+            "Description": "OPTIONAL: If StorageEncrypted is true, the Amazon KMS key identifier for the encrypted DB cluster.",
+            "Type": "String",
+            "Default": ""
+        },
+        "VPC": {
+            "Description": "VPC ID",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "PrivateSubnet1": {
+            "Description": "Subnet 1",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "PrivateSubnet2": {
+            "Description": "Subnet 2",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "DefaultSecurityGroup": {
+            "Description": "Default Security Group",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        }
+    },
+    "Conditions": {
+        "CreateDBReplicaInstance": {
+            "Fn::Not": [
+                {
+                    "Fn::Equals": [
+                        {
+                            "Ref": "DBReplicaIdentifierSuffix"
+                        },
+                        ""
+                    ]
+                }
+            ]
+        },
+        "IsDBClusterIdEmptyCondition": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DBClusterId"
+                },
+                ""
+            ]
+        },
+        "AttachBulkloadIAMRoleToNeptuneClusterCondition": {
+            "Fn::Equals": [
+                {
+                    "Ref": "AttachBulkloadIAMRoleToNeptuneCluster"
+                },
+                "true"
+            ]
+        }
+    },
+    "Mappings": {
+        "ServicePrincipalMap": {
+            "aws": {
+                "EC2ServicePrincipal": "ec2.amazonaws.com"
+            },
+            "aws-cn": {
+                "EC2ServicePrincipal": "ec2.amazonaws.com.cn"
+            },
+            "aws-us-gov": {
+                "EC2ServicePrincipal": "ec2.amazonaws.com"
+            }
+        }
+    },
+    "Resources": {
+        "NeptuneDBSubnetGroup": {
+            "Type": "AWS::Neptune::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Neptune DB subnet group",
+                "SubnetIds": [
+                    {
+                        "Ref": "PrivateSubnet1"
+                    },
+                    {
+                        "Ref": "PrivateSubnet2"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        },
+        "NeptuneSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "GroupDescription": "Allow Neptune DBPort Access",
+                "SecurityGroupIngress": [
+                    {
+                        "FromPort": {
+                            "Ref": "DBClusterPort"
+                        },
+                        "ToPort": {
+                            "Ref": "DBClusterPort"
+                        },
+                        "IpProtocol": "tcp",
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "http access"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        },
+        "NeptuneClientRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": {
+                                    "Fn::FindInMap": [
+                                        "ServicePrincipalMap",
+                                        {
+                                            "Ref": "AWS::Partition"
+                                        },
+                                        "EC2ServicePrincipal"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "NeptuneIamAuthUser": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Path": "/"
+            }
+        },
+        "NeptuneAccessPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "NeptuneAccessPolicy",
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "rds:*",
+                                "iam:GetAccountSummary",
+                                "iam:ListAccountAliases",
+                                "iam:PassRole"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "NeptuneClientRole"
+                    }
+                ]
+            }
+        },
+        "NeptuneIAMAuthPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "NeptuneIAMAuthPolicy",
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "neptune-db:*"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:neptune-db:"
+                                        },
+                                        {
+                                            "Ref": "AWS::Region"
+                                        },
+                                        ":",
+                                        {
+                                            "Ref": "AWS::AccountId"
+                                        },
+                                        ":",
+                                        {
+                                            "Fn::GetAtt": [
+                                                "NeptuneDBCluster",
+                                                "ClusterResourceId"
+                                            ]
+                                        },
+                                        "/*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "NeptuneClientRole"
+                    }
+                ],
+                "Users": [
+                    {
+                        "Ref": "NeptuneIamAuthUser"
+                    }
+                ]
+            }
+        },
+        "NeptuneLoadFromS3Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "rds.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "NeptuneLoadFromS3Policy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "NeptuneLoadFromS3Policy",
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "NeptuneLoadFromS3Role"
+                    }
+                ]
+            }
+        },
+        "NeptuneDBClusterParameterGroup": {
+            "Type": "AWS::Neptune::DBClusterParameterGroup",
+            "Properties": {
+                "Family": "neptune1.2",
+                "Description": "test-cfn-neptune-db-cluster-parameter-group-description",
+                "Parameters": {
+                    "neptune_enable_audit_log": {
+                        "Ref": "NeptuneEnableAuditLog"
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        },
+        "NeptuneDBParameterGroup": {
+            "Type": "AWS::Neptune::DBParameterGroup",
+            "Properties": {
+                "Family": "neptune1.2",
+                "Description": "test-cfn-neptune-db-parameter-group-description",
+                "Parameters": {
+                    "neptune_query_timeout": {
+                        "Ref": "NeptuneQueryTimeout"
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        },
+        "NeptuneDBCluster": {
+            "Type": "AWS::Neptune::DBCluster",
+            "Properties": {
+                "EngineVersion": "1.2",
+                "DBClusterIdentifier": {
+                    "Fn::If": [
+                        "IsDBClusterIdEmptyCondition",
+                        {
+                            "Ref": "AWS::NoValue"
+                        },
+                        {
+                            "Ref": "DBClusterId"
+                        }
+                    ]
+                },
+                "ServerlessScalingConfiguration": {
+                    "MinCapacity": {
+                        "Ref": "MinNCUs"
+                    },
+                    "MaxCapacity": {
+                        "Ref": "MaxNCUs"
+                    }
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "NeptuneDBSubnetGroup"
+                },
+                "VpcSecurityGroupIds": [
+                    {
+                        "Ref": "DefaultSecurityGroup"
+                    },
+                    {
+                        "Ref": "NeptuneSG"
+                    }
+                ],
+                "DBClusterParameterGroupName": {
+                    "Ref": "NeptuneDBClusterParameterGroup"
+                },
+                "DBPort": {
+                    "Ref": "DBClusterPort"
+                },
+                "IamAuthEnabled": {
+                    "Ref": "IamAuthEnabled"
+                },
+                "StorageEncrypted": {
+                    "Ref": "StorageEncrypted"
+                },
+                "KmsKeyId": {
+                    "Ref": "KmsKeyId"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ],
+                "AssociatedRoles": {
+                    "Fn::If": [
+                        "AttachBulkloadIAMRoleToNeptuneClusterCondition",
+                        [
+                            {
+                                "RoleArn": {
+                                    "Fn::GetAtt": [
+                                        "NeptuneLoadFromS3Role",
+                                        "Arn"
+                                    ]
+                                }
+                            }
+                        ],
+                        {
+                            "Ref": "AWS::NoValue"
+                        }
+                    ]
+                }
+            }
+        },
+        "NeptuneDBInstance": {
+            "Type": "AWS::Neptune::DBInstance",
+            "Properties": {
+                "DBClusterIdentifier": {
+                    "Ref": "NeptuneDBCluster"
+                },
+                "DBInstanceClass": {
+                    "Ref": "DbInstanceType"
+                },
+                "DBParameterGroupName": {
+                    "Ref": "NeptuneDBParameterGroup"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        },
+        "NeptuneDBReplicaInstance": {
+            "Type": "AWS::Neptune::DBInstance",
+            "Condition": "CreateDBReplicaInstance",
+            "Properties": {
+                "DBInstanceIdentifier": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "NeptuneDBInstance"
+                            },
+                            "-",
+                            {
+                                "Ref": "DBReplicaIdentifierSuffix"
+                            }
+                        ]
+                    ]
+                },
+                "DBClusterIdentifier": {
+                    "Ref": "NeptuneDBCluster"
+                },
+                "DBInstanceClass": {
+                    "Ref": "DbInstanceType"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "Neptune-${Env}"
+                        }
+                    },
+                    {
+                        "Key": "StackId",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackId}"
+                        }
+                    },
+                    {
+                        "Key": "Stack",
+                        "Value": {
+                            "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+                        }
+                    },
+                    {
+                        "Key": "Application",
+                        "Value": "NeptuneCloudformation"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "DBClusterId": {
+            "Description": "Neptune Cluster Identifier",
+            "Value": {
+                "Ref": "NeptuneDBCluster"
+            }
+        },
+        "DBSubnetGroupId": {
+            "Description": "Neptune DBSubnetGroup Identifier",
+            "Value": {
+                "Ref": "NeptuneDBSubnetGroup"
+            }
+        },
+        "DBClusterResourceId": {
+            "Description": "Neptune Cluster Resource Identifier",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBCluster",
+                    "ClusterResourceId"
+                ]
+            }
+        },
+        "DBClusterEndpoint": {
+            "Description": "Master Endpoint for Neptune Cluster",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBCluster",
+                    "Endpoint"
+                ]
+            }
+        },
+        "DBInstanceEndpoint": {
+            "Description": "Master Instance Endpoint",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBInstance",
+                    "Endpoint"
+                ]
+            }
+        },
+        "DBReplicaInstanceEndpoint": {
+            "Description": "ReadReplica Instance Endpoint",
+            "Condition": "CreateDBReplicaInstance",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBReplicaInstance",
+                    "Endpoint"
+                ]
+            }
+        },
+        "SparqlEndpoint": {
+            "Description": "Sparql Endpoint for Neptune",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Endpoint"
+                            ]
+                        },
+                        ":",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Port"
+                            ]
+                        },
+                        "/sparql"
+                    ]
+                ]
+            }
+        },
+        "GremlinEndpoint": {
+            "Description": "Gremlin Endpoint for Neptune",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Endpoint"
+                            ]
+                        },
+                        ":",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Port"
+                            ]
+                        },
+                        "/gremlin"
+                    ]
+                ]
+            }
+        },
+        "LoaderEndpoint": {
+            "Description": "Loader Endpoint for Neptune",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Endpoint"
+                            ]
+                        },
+                        ":",
+                        {
+                            "Fn::GetAtt": [
+                                "NeptuneDBCluster",
+                                "Port"
+                            ]
+                        },
+                        "/loader"
+                    ]
+                ]
+            }
+        },
+        "DBClusterReadEndpoint": {
+            "Description": "DB cluster Read Endpoint",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBCluster",
+                    "ReadEndpoint"
+                ]
+            }
+        },
+        "DBClusterPort": {
+            "Description": "Port for the Neptune Cluster",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneDBCluster",
+                    "Port"
+                ]
+            }
+        },
+        "NeptuneLoadFromS3IAMRoleArn": {
+            "Description": "IAM Role for loading data in Neptune",
+            "Value": {
+                "Fn::GetAtt": [
+                    "NeptuneLoadFromS3Role",
+                    "Arn"
+                ]
+            }
+        },
+        "NeptuneIamAuthUser": {
+            "Description": "IAM User for accessing Neptune via IAM Auth",
+            "Value": {
+                "Ref": "NeptuneIamAuthUser"
+            }
+        },
+        "NeptuneClientRole": {
+            "Description": "Neptune Client Role",
+            "Value": {
+                "Ref": "NeptuneClientRole"
+            }
+        },
+        "NeptuneSG": {
+            "Description": "Neptune Security Group",
+            "Value": {
+                "Ref": "NeptuneSG"
+            }
+        }
+    }
+}

@@ -1,0 +1,119 @@
+{
+  "models": [
+    {
+      "model": "custom",
+      "task_type": "link_predict",
+      "eval_metric": {
+        "tuning_objective": {
+          "MetricName": "MRR",
+          "Type": "Maximize"
+        },
+        "metric_definitions": [
+          {
+            "Name": "MRR",
+            "Regex": "Validation average MRR[ ]*: (\\S*)"
+          },
+          {
+            "Name": "Train Loss",
+            "Regex": "Train Loss: (\\S*)"
+          },
+          {
+            "Name": "Validation Loss",
+            "Regex": "Validation Loss : (\\S*)"
+          }
+        ]
+      },
+      "1-tier-param": [
+        {
+          "param": "hidden-size",
+          "range": [
+            16,
+            128
+          ],
+          "type": "int",
+          "inc_strategy": "power2"
+        },
+        {
+          "param": "num-bases",
+          "range": [
+            2,
+            8
+          ],
+          "type": "int",
+          "inc_strategy": "power2"
+        },
+        {
+          "param": "n-epochs",
+          "range": [
+            3,
+            100
+          ],
+          "inc_strategy": "linear",
+          "inc_val": 1,
+          "type": "int",
+          "node_strategy": "perM"
+        },
+        {
+          "param": "num-neighbors",
+          "range": [
+            5,
+            30
+          ],
+          "inc_strategy": "linear",
+          "inc_val": 5,
+          "type": "int"
+        },
+        {
+          "param": "lr",
+          "range": [
+            0.001,
+            0.01
+          ],
+          "type": "float",
+          "inc_strategy": "log"
+        }
+      ],
+      "2-tier-param": [
+        {
+          "param": "weight-decay",
+          "range": [
+            0.001,
+            0.01
+          ],
+          "inc_strategy": "log",
+          "type": "float",
+          "default": 0
+        },
+        {
+          "param": "num-negs",
+          "range": [
+            4,
+            32
+          ],
+          "default": 10,
+          "type": "int",
+          "inc_strategy": "power2"
+        }
+      ],
+      "3-tier-param": [
+        {
+          "param": "batch-size",
+          "range": [
+            128,
+            4096
+          ],
+          "inc_strategy": "power2",
+          "type": "int",
+          "default": 1024
+        }
+      ],
+      "fixed-param": [
+        {
+          "param": "num-encoder-layers",
+          "type": "int",
+          "default": 1
+        }
+      ]
+    }
+  ]
+}
