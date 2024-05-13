@@ -7,6 +7,7 @@ This project automates the deployment of a manufacturing document comparison app
 - AWS CLI, configured for your account.
 - Docker.
 - A CloudFormation template named cf.yaml.
+- In the docker/app.py on line 276 set your password for the Gradio app
 
 ## Getting Started
 Clone the Repository

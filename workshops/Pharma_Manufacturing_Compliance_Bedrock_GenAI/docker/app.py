@@ -273,6 +273,6 @@ if __name__ == "__main__":
     ui.launch(
         share=False,
         server_name="0.0.0.0",
-        auth=("admin", "G3n@iD3mo"),
+        auth=("admin", "SET_YOUR_PASSWORD"),
         server_port=8080,
     )
