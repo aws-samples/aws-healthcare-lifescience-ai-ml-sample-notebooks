@@ -1,0 +1,39 @@
+Penicillin Manufacturing Protocal 
+
+Materials: 
+- Penicillium chrysogenum mold strain (ATCC 48271 or equivalent)
+- Growth medium:
+-- Corn steep liquor (5-10% w/v) 
+-- Sucrose (2-5% w/v)
+-- Ammonium sulfate (0.5-1% w/v) 
+-- Potassium phosphate (0.1-0.5% w/v)
+-- Fermentation vessel (100-500L capacity)
+-- Centrifuge
+-- Rotary evaporator 
+-- Ion exchange resin (strongly acidic cation exchange resin)
+-- Activated charcoal 
+-- Reverse osmosis system
+-- Sterile 0.9% sodium chloride solution
+
+Method:
+1. Inoculate a slant or plate of P. chrysogenum and incubate at 25°C for 3-5 days until sporulation occurs.
+2. Inoculate a starter culture of the growth medium with P. chrysogenum spores and incubate at 25°C for 2 days on a rotary shaker (200rpm) until a cell density of 1-5 x 107 CFU/mL is reached. 
+3. Inoculate the fermentation vessel with 10% v/v of the starter culture. 
+4. Incubate the fermentation vessel at 25°C for 5-7 days while aerating (1 vvm) and stirring (200rpm) until maximum penicillin titre is reached (100-500 IU/mL). 
+5. Centrifuge the fermentation broth at 10000xg for 20 minutes to remove cells and debris.
+6. Concentrate the supernatant using a rotary evaporator to remove excess water.
+7. Pass the concentrate through an ion exchange resin to remove impurities.
+8. Pass the concentrate through activated charcoal to remove pigments and odorous compounds.
+9. Concentrate and wash the product using a reverse osmosis system. 
+10. Re-suspend the product in sterile 0.9% sodium chloride solution to achieve a concentration of 100,000 IU penicillin G per mL.
+11. Filter sterilize the product through a 0.22μm membrane and store at 2-8°C.
+
+The final product will be a sterile aqueous solution of penicillin G potassium salt at a concentration of 100,000 IU/mL. Please note that additional purification steps may be required to produce pharmaceutical grade penicillin for human usage.
+
+The first step is to obtain penicillin mold cultures, specifically of the Penicillium chrysogenum species. These mold cultures must be obtained from a reputable culture collection and grown on a culture medium in a sterile environment. 
+
+Once active mold cultures have been established, the next step is to inoculate seed tanks containing a growth medium of lactose, corn steep liquor, ammonium sulfate, and other nutrients to promote mold growth. The inoculated seed tanks are incubated for 2 to 3 days to allow for growth of the mold.
+
+After incubation, the seed tanks contain actively growing mold cultures that can be used to inoculate production fermenters. The production fermenters contain the same growth medium as the seed tanks but on a much larger scale, up to 100,000 liters. The production fermenters are inoculated with the seed tank mold cultures and incubated for 4 to 6 days to allow for large-scale penicillin production.
+
+During fermentation, the mold cultures produce penicillin, which accumulates in the fermentation broth. The fermentation broth is harvested and goes through a multi-stage filtration process to separate out the mold cultures and other particulates. The filtered broth then goes through an extraction process, using organic solvents to extract crude penicillin.

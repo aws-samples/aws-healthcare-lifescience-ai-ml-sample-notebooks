@@ -1,0 +1,10 @@
+1. All incubations must be less than 2 days.  
+2. All sodium chloride must be greater than .95% solutions
+3. No batch can exceed 500 liters in volume. 
+4. All filtration must use 0.2 micron filters or smaller.
+5. No raw material can be used after 6 months from receipt. 
+6. All equipment must be sterilized at 121°C for at least 15 minutes.
+7. No more than 2 different products can be manufactured in the same facility. 
+8. All surfaces must be wiped down with 70% isopropyl alcohol. 
+9. No batch record can have more than 10 deviations noted.
+10. All finished products must have at least 2 years of shelf life remaining at time of release.
