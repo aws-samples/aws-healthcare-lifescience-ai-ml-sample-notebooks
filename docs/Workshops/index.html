@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+    
+        Workshops
+    
+</title>
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Index | Welcome to HCLS AI/ML Content Catalog</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="Index">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).">
+<meta property="og:description" content="This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).">
+<link rel="canonical" href="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/">
+<meta property="og:url" content="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/">
+<meta property="og:site_name" content="Welcome to HCLS AI/ML Content Catalog">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="1900-01-01T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Index">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"1900-01-01T00:00:00+00:00","datePublished":"1900-01-01T00:00:00+00:00","description":"This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).","headline":"Index","mainEntityOfPage":{"@type":"WebPage","@id":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/assets/img/logo.png"}},"url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<base href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/">
+
+<link rel="shortcut icon" type="image/png" href="">
+<style>
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: local('Nunito Sans'),
+         url(assets/fonts/NunitoSans-Regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: 'Righteous';
+    font-style: normal;
+    font-weight: 600;
+    font-display: optional;
+    src: local('Righteous'),
+         url(assets/fonts/Righteous-Regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: local('Lato'),
+         url(assets/fonts/Lato-Regular.woff2) format("woff2");
+}
+</style>
+
+<script src="assets/js/fontfaceobserver.js" type="text/javascript"></script>
+<script type="text/javascript">
+    const nunitoObserver = new FontFaceObserver('Nunito Sans');
+    const righteousObserver = new FontFaceObserver('Righteous');
+    const latoObserver = new FontFaceObserver('Lato');
+  
+    Promise.all([
+        nunitoObserver.load(),
+        righteousObserver.load(),
+        latoObserver.load(),
+    ]).then(function(){
+        document.documentElement.className += " fonts-loaded";
+    });
+</script>
+
+<meta name="description" content="This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).">
+        <link rel="preload" href="assets/img/logo.png" as="image">
+        <link rel="stylesheet" href="assets/css/style.css">
+        
+    </head>
+    <body>
+        <script type="text/javascript">
+            let currentTheme = localStorage.getItem('theme');
+        
+            document.body.classList[currentTheme === 'dark' ? 'add' : 'remove']('dark-theme');
+        </script>
+        <canvas id="stars" width="100%" height="100%"></canvas>
+        <div class="sidebar sidebar-left">
+    <div class="side-banner">
+        <h1 class="site-tab">
+            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks" class="site-name">
+                <img src="assets/img/icon/house.webp" alt="" loading="lazy">
+                <mark>Welcome to HCLS AI/ML Content Catalog</mark>
+            </a>
+            <button id="btn-brightness" aria-label="brightness-button">
+                <svg class="ico-dark" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"></path></svg>
+                <svg class="ico-light" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"></path></svg>
+            </button>
+            <button id="btn-search" aria-label="search-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg>
+            </button>
+            <button id="btn-nav" aria-pressed="false" aria-label="menu-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"></path></svg>
+            </button>
+        </h1>
+        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks" class="site-avatar" aria-label="site-avatar">
+            <img src="assets/img/logo.png" loading="lazy" alt="homepage" aria-label="homepage-button">
+        </a>
+    </div>
+    <div class="side-info">
+        <nav id="navigation">
+    
+    
+    
+
+    
+
+        
+    
+
+        
+    
+
+        
+    
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+    
+    
+    
+
+    <ul class="nav-list">
+<li id="nav-first" aria-label="Blogs">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Blogs</span>
+                </a>
+</div>
+</li>
+<li id="nav-first" aria-label="Workshops">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Workshops</span>
+                </a>
+</div>
+</li>
+<li id="nav-first" aria-label="Home">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Home</span>
+                </a>
+</div>
+</li>
+</ul>
+</nav>
+        <div id="contact">
+            <hr>
+            <h3>Contact</h3>
+            <ul class="contact-list">
+                
+                
+                    <li><a aria-label="My Email" href="mailto:hcls-aiml-sa@amazon.com">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"></path></svg>
+                    </a></li>
+                
+                
+                
+                
+                
+            </ul>
+            <hr>
+            <span>
+                Copyright © 2024 | <a href="https://github.com/byanko55/jekyll-theme-satellite">Yankos</a>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="sidebar sidebar-right">
+    <div class="tools">
+        <button id="btn-brightness" aria-label="brightness-button">
+            <svg class="ico-dark" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"></path></svg>
+            <svg class="ico-light" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"></path></svg>
+        </button>
+        <button id="btn-search" aria-label="search-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg>
+        </button>
+    </div>
+</div>
+        <div id="post">
+            <div class="inner-header">
+                <span class="dot" style="background-color: #F86158;"></span>
+                <span class="dot" style="background-color: #FBBF2D;"></span>
+                <span class="dot" style="background-color: #2ACB45;"></span>
+            </div>
+            <div class="inner-content">
+                <div class="category-tree">
+<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"></path></svg>
+    <p>
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks">Home</a>
+                &gt;
+            
+                
+                    Workshops
+                
+            </p>
+</div>
+                
+                    <div id="loading">
+    <div class="loading_box">
+        <img src="assets/img/loading.webp" loading="lazy">
+        <p>Now Loading ...</p>
+    </div>
+</div>
+                    <h1 class="category-header">
+    
+        Workshops
+    
+</h1>
+<div id="category-list">
+    <ul class="paginated-list" data-current-page="1" aria-live="polite">
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html"><h1 class="title_post">Explain Hospital Triage from Admission Notes</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html" class="txt_post">
+                            The intent of this notebook is to provide a practical guide for data scientists, and machine learning engineers to collaborate with clinicians, and to support real implementations of clinical indicator predictions. As such, explainability of the algorithms is required.
+
+Advances in NLP algorithms, as in the studies above, have made predicting clinical indicators more accurate, yet in order to effectively use machine learning models in a production setting, clinicians also need more insight into how these models work. They need to know that these algorithms make clinical sense before going to production. Clinicians and data scientists, need a way to evaluate realiablility, and explainability of models over time, as more data continues to be evaluated, and machine learning models are retrained.
+
+This notebook will take one of these clinical triage indicators, in-hospital mortality, and show how AWS services and infrastructure, along with pre-trained HuggingFace BERT models, can be used to train a binary classifier on text data, estimate a threshold value for triage, and then use Amazon Sagemaker Clarify to explain what admission note text is supporting the recommendations the algorithm is making.
+
+Resources :
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2023-02-23</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-27-Classify-Ski-Lesion-Images.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-27-Classify-Ski-Lesion-Images.html"><h1 class="title_post">Classify Skin Lesion Images</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-27-Classify-Ski-Lesion-Images.html" class="txt_post">
+                            According to The Skin Cancer Foundation, 1 in 5 Americans will develop skin cancer by the age of 70 and more than 2 people die of skin cancer in the U.S. every hour. Worldwide, melanoma of skin is the 17th most common form of cancer. However, because non-melanoma skin cancer is often excluded from official statistics, it is significantly under-reported. In Brazil, according to the Brazilian Cancer Institute (INCA), skin cancer accounts for 33% of all cancer diagnoses in the country. Developing an algorithm to distinguish skin cancer from other lesions would allow communities to make the best use of limited healthcare resources.
+
+In this lab, you will use Amazon SageMaker to build, train, and deploy a classification model based on the PAD-UFES-20 skin lesion dataset.
+
+Resources :
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-10-27</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-19-Awesome-Protein-Analysis-on-AWS.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-19-Awesome-Protein-Analysis-on-AWS.html"><h1 class="title_post">Awesome Protein Analysis on AWS</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-19-Awesome-Protein-Analysis-on-AWS.html" class="txt_post">
+                            Knowing the physical structure of proteins is an important part of both small molecule and biologics drug R&amp;D. Machine learning algorithms like DeepMind’s AlphaFold can significantly reduce the cost and time required to generate usable protein structures. These high-profile projects have inspired increased development of AI-driven workflows for protein structure prediction, de novo protein design, and protein-ligand interaction analysis. AWS pharmaceutical and life science customers believe that these in silico tools can help reduce the cost and time required to bring new therapeutics to market.
+
+AWS technical teams have developed solutions to common protein analysis problems. These use a variety of services to best fit the needs of our customers.
+
+Resources :
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-10-19</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-04-Optimize-Protein-Folding-Costs-with-OpenFold-on-AWS-Batch.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-04-Optimize-Protein-Folding-Costs-with-OpenFold-on-AWS-Batch.html"><h1 class="title_post">Optimize Protein Folding Costs with OpenFold on AWS Batch</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-04-Optimize-Protein-Folding-Costs-with-OpenFold-on-AWS-Batch.html" class="txt_post">
+                            Knowing the physical structure of proteins is an important part of the drug discovery process. Machine learning (ML) algorithms like AlphaFold v2.0 significantly reduce the cost and time needed to generate usable protein structures. These projects have also inspired development of AI-driven workflows for de novo protein design and protein-ligand interaction analysis.
+
+Researchers have used AlphaFold to publish over 200 million protein structures. However, newer algorithms may provide cost or accuracy improvements. One example is OpenFold, a fully open-source alternative to AlphaFold, optimized to run on widely available GPUs.
+
+In this post, we build on prior work to describe how to orchestrate protein folding jobs on AWS Batch. We also compare the performance of OpenFold and AlphaFold on a set of public targets. Finally, we will discuss how to optimize your protein folding costs.
+
+Resources :
+
+  Github
+  AWS HPC Blog
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-10-04</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-01-Cancer-Gene-Expression-SageMaker-Pipelines-Multi-Model-Endpoints.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-01-Cancer-Gene-Expression-SageMaker-Pipelines-Multi-Model-Endpoints.html"><h1 class="title_post">Build and Deploy Many Models Leveraging Cancer Gene Expression Data With SageMaker Pipelines and SageMaker Multi-Model Endpoints</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-01-Cancer-Gene-Expression-SageMaker-Pipelines-Multi-Model-Endpoints.html" class="txt_post">
+                            In the context of survival analysis for cancer, a common approach is to analyze gene signatures, and to predict the survival of patients based on the gene expression signatures.
+
+In this blog post, we show how you can leverage SageMaker Pipelines and SageMaker MultiModel Endpoints to build and deploy many such models.
+
+Resources :
+
+  Blog
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-10-01</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Summarize-Scientific-Documents.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Summarize-Scientific-Documents.html"><h1 class="title_post">Summarize Scientific Documents</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Summarize-Scientific-Documents.html" class="txt_post">
+                            Researchers must stay up-to-date on their fields of interest. However, it’s difficult to keep track of the large number of journals, whitepapers, and research pre-prints generated in many areas. In response, many research groups have turned to AI/ML tools to summarize and classify new documents.
+
+In this workshop, we’ll use several AWS AI/ML services to process scientific documents from the NIH NCBI PMC Article Dataset on the Registry of Open Data. This is a free full-text archive of biomedical and life sciences journal article at the U.S. National Institutes of Health’s National Library of Medicine.
+
+Resources :
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-07-21</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Process-Medical-Docs-with-AI-Services.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Process-Medical-Docs-with-AI-Services.html"><h1 class="title_post">Medical Document Processing with Amazon Textract, Amazon Comprehend, and Amazon Comprehend Medical</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Process-Medical-Docs-with-AI-Services.html" class="txt_post">
+                            In this notebook, we will walkthrough on how to build a data processing pipeline that will process electronic medical reports (EMR) in PDF format to extract relevant medical information by using the following AWS services:
+
+
+  Textract: To extract text from the PDF medical report
+  Comprehend: To process general language data from the output of Textract.
+  Comprehend Medical: To process medical-domain information from the output of Textract.
+
+
+Resources:
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-07-21</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-18-Detect-Objects-in-Chest-X-Rays.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-18-Detect-Objects-in-Chest-X-Rays.html"><h1 class="title_post">Use Ground Truth Labeled Data to Train an Object Detection Model in Chest Xrays</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-18-Detect-Objects-in-Chest-X-Rays.html" class="txt_post">
+                            In this notebook, we demonstrate how to build a machine learning model to detect the trachea of a patient in an x-ray image using Amazon SageMaker. We will be using 1099 NIH Chest X-ray images sampled from this repository. While the images are originally from that source, we leveraged SageMaker Ground Truth to create bounding boxes around the trachea of the patient. We will thus be using both the raw images and also the manifest file where labellers labeled the trachea of the patient.
+
+This process could potentially be used as a template for detecting other objects as well within X-ray images. However, we focus only on detecting the trachea of the patient, if it is present. This notebook contains instructions to use the GroundTruth manifest file to understand the labeled data, train, build and deploy the model as an end point in SageMaker.
+
+Resources:
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-07-18</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-05-22-Medical-Imaging-AI-on-AWS-Workshop.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-05-22-Medical-Imaging-AI-on-AWS-Workshop.html"><h1 class="title_post">Medical Imaging AI on AWS Workshop</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-05-22-Medical-Imaging-AI-on-AWS-Workshop.html" class="txt_post">
+                            This workshop presents an AWS solution by running open source MONAI label on EC2 virtual machine with autoscaling, which has been mounted to the same Amazon Elastic File System (EFS) volume shared with Amazon Sagemaker Studio notebook instances.
+
+Through the common file share, clinicians and data scientists can collaborate on the same data sets through different tools that they are familiar with.
+
+Amazon AppStream 2.0 is used to stream an image computing platform, named 3D Slicer for interactive medical image annotation for clinicians.
+
+Link to the workshop
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-05-22</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-01-18-Healthcare-Payments-Prediction-SageMaker-AutoPilot.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-01-18-Healthcare-Payments-Prediction-SageMaker-AutoPilot.html"><h1 class="title_post">Medicare Payment Prediction with Amazon SageMaker Autopilot</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-01-18-Healthcare-Payments-Prediction-SageMaker-AutoPilot.html" class="txt_post">
+                            Amazon SageMaker Autopilot is an automated machine learning (commonly referred to as AutoML) solution for tabular datasets. You can use SageMaker Autopilot in different ways: on autopilot (hence the name) or with human guidance, without code through SageMaker Studio, or using the AWS SDKs. This notebook, as a first glimpse, will use the AWS SDKs to simply create and deploy a machine learning model. Feature Engineering and hyperparameter tuning can be a laborious process, especially in “messy” dataset, like the one discussed in this notebook. Autopilot will perform the feature engineering and hyperparameter tuning for us.
+
+Predicting payments from insurance providers for healthcare services provided is essential for providers, insurers, and patients. This notebook analzes a 2010 dataset of Medicare payments based on a sample of benificiaries.
+
+Resources:
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2022-01-18</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Train-Multiple-Model-in-Paralle-Using-SageMake.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Train-Multiple-Model-in-Paralle-Using-SageMake.html"><h1 class="title_post">Train Multiple Models in Parallel Using SageMaker Training</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Train-Multiple-Model-in-Paralle-Using-SageMake.html" class="txt_post">
+                            This notebook will demonstrate how SageMaker Training jobs can be used in a scalable fashion to kick off parallel training jobs. This has the advantage that jobs can be run in parallel without concerns about RAM or similair constraints.
+
+Resources :
+
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2021-12-20</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html"><h1 class="title_post">Predicting Whether a Breast Cancer Sample is Benign or Malignant</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html" class="txt_post">
+                            For this model, we will build, train and deploy a Multi-layer Perceptron using the sklearn library. This is a breast cancer diagnoses dataset, where, for each sample, the sample is diagnosed as “Benign” or “Malignant”. For each sample, a number of features are given as well. The source of the dataset is the UCI Machine Learning Repository.
+
+Resources :
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2021-12-20</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html"><h1 class="title_post">Predict Average Medicaree Hospital Spending</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html" class="txt_post">
+                            Medicare is a national health insurance program, administered by the Center for Medicare and Medicaid Services (CMS). This is a primary health insurance for Americans who are aged 65 and older. Medicare has published historical data showing hospital’s average spending for Medicare Part A and Part B claims based on different claim types and claim periods covering 1 to 3 days prior to hospital admission up to 30 days after discharge from hospital admission. These hospital spending are price standardized and non-risk adjusted, since risk adjustment is done at the episode level of the claims spanning the entire period during the episode. The hospital average costs are listed against the corresponding state level average cost and national level average cost.
+
+In this notebook, the data is used to build a machine learning model using Amazon SageMaker built-in Linear Learner algorithm, which predicts average hospital spending cost based on the average state level spending and average national level spending. The predicted cost can be used for purposes of budget and for negotiating pricing with the hospitals. From the hospital’s perspective, the predicted average hospital spending provides visibility to claim financials that can be used by the hospitals to increase their efficiency and level of care.
+
+Resources :
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2021-12-20</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        <li class="paginated-item">
+                <div id="article_content">
+                    <div class="thumbnail_zone">
+                        
+                            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Automated-Retraining-of-Obesity-Models.html" class="thumbnail_post empty" loading="lazy" aria-label="thumbnail_post" style="background-image:url('assets/img/thumbnail/empty.jpg') !important"></a>
+                        
+                    </div>
+
+                    <div class="box_contents">
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Automated-Retraining-of-Obesity-Models.html"><h1 class="title_post">Automate Retraining of Obesity Models using SageMaker Pipelines</h1></a>
+                        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Automated-Retraining-of-Obesity-Models.html" class="txt_post">
+                            This workshop shows how you can build and deploy SageMaker Pipelines for multistep processes. In this example, we will build a pipeline that:
+
+
+  Deduplicates the underlying data
+  Trains a built-in SageMaker algorithm (XGBoost)
+
+
+A common workflow is that models need to be retrained when new data arrives. This notebook also shows how you can set up a Lambda function that will retrigger the retraining pipeline when new data comes in.
+
+Resources :
+
+  Github
+
+
+                        </a>
+                        <div class="info-post">
+                                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops" class="category">Workshops</a>
+                            
+                                <span class="date">· 2021-12-20</span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </li>
+        
+        
+        
+        </ul>
+    
+</div>
+<div class="pagination">
+    <nav class="pagination-container">
+        <button class="pagination-button" id="prev-button" aria-label="Previous page" title="Previous page">
+            &lt;
+        </button>
+    
+        <div id="pagination-numbers"></div>
+      
+        <button class="pagination-button" id="next-button" aria-label="Next page" title="Next page">
+            &gt;
+        </button>
+    </nav>
+</div>
+                
+            </div>
+        </div>
+        <div id="search">
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+
+    <div class="search-box">
+        <mark>Touch background to close</mark>
+        <div class="input-box">
+            <input id="search-input" type="search" tabindex="1" spellcheck="false" placeholder="Search...">
+            <button id="btn-clear">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"></path></svg>
+            </button>
+        </div>
+        <ul id="search-result"></ul>
+    </div>
+</div>
+    </body>
+    <script defer src="assets/js/background.js"></script>
+<script defer src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+    
+        <script src="assets/js/subject.js"></script>
+    
+    <script src="assets/js/common.js"></script>
+    <script defer>
+    var posts = [];
+
+    posts.push({
+            'title'    : "Index",
+            'path'     : "Blogs",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Index",
+            'path'     : "Workshops",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Index",
+            'path'     : "",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Automate Retraining of Obesity Models using SageMaker Pipelines",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Automated-Retraining-of-Obesity-Models.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predict Average Medicaree Hospital Spending",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predicting Whether a Breast Cancer Sample is Benign or Malignant",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Predict-BRCA-Malignancy.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Automate Retraining of Obesity Models using SageMaker Pipelines",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Automated-Retraining-of-Obesity-Models.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predict Average Medicaree Hospital Spending",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predicting Whether a Breast Cancer Sample is Benign or Malignant",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Train Multiple Models in Parallel Using SageMaker Training",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Train-Multiple-Model-in-Paralle-Using-SageMake.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Medicare Payment Prediction with Amazon SageMaker Autopilot",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-01-18-Healthcare-Payments-Prediction-SageMaker-AutoPilot.html",
+            'image'    : "",
+            'date'     : "2022-01-18"
+        });
+    posts.push({
+            'title'    : "Medical Imaging AI on AWS Workshop",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-05-22-Medical-Imaging-AI-on-AWS-Workshop.html",
+            'image'    : "",
+            'date'     : "2022-05-22"
+        });
+    posts.push({
+            'title'    : "Use Ground Truth Labeled Data to Train an Object Detection Model in Chest Xrays",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-18-Detect-Objects-in-Chest-X-Rays.html",
+            'image'    : "",
+            'date'     : "2022-07-18"
+        });
+    posts.push({
+            'title'    : "Medical Document Processing with Amazon Textract, Amazon Comprehend, and Amazon Comprehend Medical",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Process-Medical-Docs-with-AI-Services.html",
+            'image'    : "",
+            'date'     : "2022-07-21"
+        });
+    posts.push({
+            'title'    : "Summarize Scientific Documents",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Summarize-Scientific-Documents.html",
+            'image'    : "",
+            'date'     : "2022-07-21"
+        });
+    posts.push({
+            'title'    : "Build and Deploy Many Models Leveraging Cancer Gene Expression Data With SageMaker Pipelines and SageMaker Multi-Model Endpoints",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-01-Cancer-Gene-Expression-SageMaker-Pipelines-Multi-Model-Endpoints.html",
+            'image'    : "",
+            'date'     : "2022-10-01"
+        });
+    posts.push({
+            'title'    : "Optimize Protein Folding Costs with OpenFold on AWS Batch",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-04-Optimize-Protein-Folding-Costs-with-OpenFold-on-AWS-Batch.html",
+            'image'    : "",
+            'date'     : "2022-10-04"
+        });
+    posts.push({
+            'title'    : "Awesome Protein Analysis on AWS",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-19-Awesome-Protein-Analysis-on-AWS.html",
+            'image'    : "",
+            'date'     : "2022-10-19"
+        });
+    posts.push({
+            'title'    : "Classify Skin Lesion Images",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-27-Classify-Ski-Lesion-Images.html",
+            'image'    : "",
+            'date'     : "2022-10-27"
+        });
+    posts.push({
+            'title'    : "Explain Hospital Triage from Admission Notes",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html",
+            'image'    : "",
+            'date'     : "2023-02-23"
+        });
+    posts.push({
+            'title'    : "Interact Conversationally with AWS HealthLake",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "GenAI, Amazon Bedrock, Amzon HealthLake",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2023-09-13-Interact-Conversationally-with-HealthLake.html",
+            'image'    : "assets/img/posts/image-one-Interact-Conversationally-with-AWS-HealthLake-1024x516.png",
+            'date'     : "2023-09-23"
+        });
+    posts.push({
+            'title'    : "Generative AI-Powered Clinical Intelligence - Safely Driving Better Outcomes",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Gen AI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-28-GenAI-Powered-Clinical-Intelligenence.html",
+            'image'    : "",
+            'date'     : "2024-02-28"
+        });
+    posts.push({
+            'title'    : "Use RAG for drug discovery with Knowledge Bases for Amazon Bedrock",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Gen AI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-29-Drug-Discovery-With-RAG-KBs.html",
+            'image'    : "",
+            'date'     : "2024-02-29"
+        });
+    posts.push({
+            'title'    : "Improving Patient Experience with Digital Front Door",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "GenAI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-29-Imporving-Patient-Experience-with-Digital-Front-Door.html",
+            'image'    : "",
+            'date'     : "2024-02-29"
+        });
+    posts.push({
+            'title'    : "Efficiently fine-tune the ESM-2 protein language model with Amazon SageMaker",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Life Science, Amazon SageMaker",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-03-06-Efficiently-fine-tune-ESM-2.html",
+            'image'    : "assets/img/posts/ML-15387-amino-acid-chain.png",
+            'date'     : "2024-03-06"
+        });
+    posts.push({
+            'title'    : "Find the Next Blockbuster with NVIDIA BioNeMo Framework on Amazon SageMaker",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Life Science, Amazon SageMaker, Nvidia BioNeMo",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-03-11-NVIDIA-BioNemo-on-Amazon-SageMaker.html",
+            'image'    : "assets/img/posts/social-aws-lockup-1200x680-WHITE.jpg",
+            'date'     : "2024-03-11"
+        });
+    
+
+    searchPost(posts);
+
+    
+</script>
+</html>

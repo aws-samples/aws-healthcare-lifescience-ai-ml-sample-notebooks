@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+    
+        Explain Hospital Triage from Admission Notes
+    
+</title>
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Explain Hospital Triage from Admission Notes | Welcome to HCLS AI/ML Content Catalog</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="Explain Hospital Triage from Admission Notes">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="The intent of this notebook is to provide a practical guide for data scientists, and machine learning engineers to collaborate with clinicians, and to support real implementations of clinical indicator predictions. As such, explainability of the algorithms is required.">
+<meta property="og:description" content="The intent of this notebook is to provide a practical guide for data scientists, and machine learning engineers to collaborate with clinicians, and to support real implementations of clinical indicator predictions. As such, explainability of the algorithms is required.">
+<link rel="canonical" href="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html">
+<meta property="og:url" content="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html">
+<meta property="og:site_name" content="Welcome to HCLS AI/ML Content Catalog">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-02-23T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Explain Hospital Triage from Admission Notes">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-02-23T00:00:00+00:00","datePublished":"2023-02-23T00:00:00+00:00","description":"The intent of this notebook is to provide a practical guide for data scientists, and machine learning engineers to collaborate with clinicians, and to support real implementations of clinical indicator predictions. As such, explainability of the algorithms is required.","headline":"Explain Hospital Triage from Admission Notes","mainEntityOfPage":{"@type":"WebPage","@id":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/assets/img/logo.png"}},"url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<base href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/">
+
+<link rel="shortcut icon" type="image/png" href="">
+<style>
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: local('Nunito Sans'),
+         url(assets/fonts/NunitoSans-Regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: 'Righteous';
+    font-style: normal;
+    font-weight: 600;
+    font-display: optional;
+    src: local('Righteous'),
+         url(assets/fonts/Righteous-Regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: local('Lato'),
+         url(assets/fonts/Lato-Regular.woff2) format("woff2");
+}
+</style>
+
+<script src="assets/js/fontfaceobserver.js" type="text/javascript"></script>
+<script type="text/javascript">
+    const nunitoObserver = new FontFaceObserver('Nunito Sans');
+    const righteousObserver = new FontFaceObserver('Righteous');
+    const latoObserver = new FontFaceObserver('Lato');
+  
+    Promise.all([
+        nunitoObserver.load(),
+        righteousObserver.load(),
+        latoObserver.load(),
+    ]).then(function(){
+        document.documentElement.className += " fonts-loaded";
+    });
+</script>
+
+<meta name="description" content="This is the content archive for HCLS AI/ML artifacts (blogs, workshops, solutions).">
+        <link rel="preload" href="assets/img/logo.png" as="image">
+        <link rel="stylesheet" href="assets/css/style.css">
+        
+            
+
+            <meta name="giscus_repo" content="">
+            <meta name="giscus_repoId" content="">
+            <meta name="giscus_category" content="">
+            <meta name="giscus_categoryId" content="">
+
+            
+                <style>
+                    .thumbnail {
+                        aspect-ratio: auto !important;
+                    }
+                    .transbox {
+                        transform: none;
+                        position: relative;
+                        margin: auto;
+                        left: 0;
+                        top: 0;
+                    }
+                </style>
+            
+        
+    </head>
+    <body>
+        <script type="text/javascript">
+            let currentTheme = localStorage.getItem('theme');
+        
+            document.body.classList[currentTheme === 'dark' ? 'add' : 'remove']('dark-theme');
+        </script>
+        <canvas id="stars" width="100%" height="100%"></canvas>
+        <div class="sidebar sidebar-left">
+    <div class="side-banner">
+        <h1 class="site-tab">
+            <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks" class="site-name">
+                <img src="assets/img/icon/house.webp" alt="" loading="lazy">
+                <mark>Welcome to HCLS AI/ML Content Catalog</mark>
+            </a>
+            <button id="btn-brightness" aria-label="brightness-button">
+                <svg class="ico-dark" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"></path></svg>
+                <svg class="ico-light" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"></path></svg>
+            </button>
+            <button id="btn-search" aria-label="search-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg>
+            </button>
+            <button id="btn-nav" aria-pressed="false" aria-label="menu-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"></path></svg>
+            </button>
+        </h1>
+        <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks" class="site-avatar" aria-label="site-avatar">
+            <img src="assets/img/logo.png" loading="lazy" alt="homepage" aria-label="homepage-button">
+        </a>
+    </div>
+    <div class="side-info">
+        <nav id="navigation">
+    
+    
+    
+
+    
+
+        
+    
+
+        
+    
+
+        
+    
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+    
+    
+    
+
+    <ul class="nav-list">
+<li id="nav-first" aria-label="Blogs">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Blogs</span>
+                </a>
+</div>
+</li>
+<li id="nav-first" aria-label="Workshops">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Workshops</span>
+                </a>
+</div>
+</li>
+<li id="nav-first" aria-label="Home">
+            <div class="nav-item">
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks/" class="nav-list-link nav-lh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M181.3 32.4c17.4 2.9 29.2 19.4 26.3 36.8L197.8 128h95.1l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3s29.2 19.4 26.3 36.8L357.8 128H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H347.1L325.8 320H384c17.7 0 32 14.3 32 32s-14.3 32-32 32H315.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8l9.8-58.7H155.1l-11.5 69.3c-2.9 17.4-19.4 29.2-36.8 26.3s-29.2-19.4-26.3-36.8L90.2 384H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l21.3-128H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h68.9l11.5-69.3c2.9-17.4 19.4-29.2 36.8-26.3zM187.1 192L165.8 320h95.1l21.3-128H187.1z"></path></svg>
+                    <span>Home</span>
+                </a>
+</div>
+</li>
+</ul>
+</nav>
+        <div id="contact">
+            <hr>
+            <h3>Contact</h3>
+            <ul class="contact-list">
+                
+                
+                    <li><a aria-label="My Email" href="mailto:hcls-aiml-sa@amazon.com">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"></path></svg>
+                    </a></li>
+                
+                
+                
+                
+                
+            </ul>
+            <hr>
+            <span>
+                Copyright © 2024 | <a href="https://github.com/byanko55/jekyll-theme-satellite">Yankos</a>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="sidebar sidebar-right">
+    <div class="tools">
+        <button id="btn-brightness" aria-label="brightness-button">
+            <svg class="ico-dark" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"></path></svg>
+            <svg class="ico-light" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"></path></svg>
+        </button>
+        <button id="btn-search" aria-label="search-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg>
+        </button>
+    </div>
+<div class="toc">
+        <span class="toc-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"></path></svg>
+            Contents
+        </span>
+        <div class="toc-board"></div>
+    </div>
+</div>
+        <div id="post">
+            <div class="inner-header">
+                <span class="dot" style="background-color: #F86158;"></span>
+                <span class="dot" style="background-color: #FBBF2D;"></span>
+                <span class="dot" style="background-color: #2ACB45;"></span>
+            </div>
+            <div class="inner-content">
+                <div class="category-tree">
+<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"></path></svg>
+    <p>
+                <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks">Home</a>
+                &gt;
+            <a>Workshops</a>
+                &gt;
+            
+                
+                    Explain Hospital Triage from Admission Notes
+                
+            </p>
+</div>
+                
+                    <div class="post-header">
+    <div class="thumbnail">
+        <div class="transbox">
+            
+                <span class="post-title">Explain Hospital Triage from Admission Notes</span>
+            
+            <div class="post-info">
+                
+                    <span class="info-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><path d="M384 480h48c11.4 0 21.9-6 27.6-15.9l112-192c5.8-9.9 5.8-22.1 .1-32.1S555.5 224 544 224H144c-11.4 0-21.9 6-27.6 15.9L48 357.1V96c0-8.8 7.2-16 16-16H181.5c4.2 0 8.3 1.7 11.3 4.7l26.5 26.5c21 21 49.5 32.8 79.2 32.8H416c8.8 0 16 7.2 16 16v32h48V160c0-35.3-28.7-64-64-64H298.5c-17 0-33.3-6.7-45.3-18.7L226.7 50.7c-12-12-28.3-18.7-45.3-18.7H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H87.7 384z"></path></svg>
+                        <span>None</span>
+                    </span>
+                
+                <span class="info-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h80v56H48V192zm0 104h80v64H48V296zm128 0h96v64H176V296zm144 0h80v64H320V296zm80-48H320V192h80v56zm0 160v40c0 8.8-7.2 16-16 16H320V408h80zm-128 0v56H176V408h96zm-144 0v56H64c-8.8 0-16-7.2-16-16V408h80zM272 248H176V192h96v56z"></path></svg>
+                    <span>
+                            2023-02-23
+                        
+                    </span>
+                </span>
+                
+                <a class="info-box" id="comments-counter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M512 240c0 114.9-114.6 208-256 208c-37.1 0-72.3-6.4-104.1-17.9c-11.9 8.7-31.3 20.6-54.3 30.6C73.6 471.1 44.7 480 16 480c-6.5 0-12.3-3.9-14.8-9.9c-2.5-6-1.1-12.8 3.4-17.4l0 0 0 0 0 0 0 0 .3-.3c.3-.3 .7-.7 1.3-1.4c1.1-1.2 2.8-3.1 4.9-5.7c4.1-5 9.6-12.4 15.2-21.6c10-16.6 19.5-38.4 21.4-62.9C17.7 326.8 0 285.1 0 240C0 125.1 114.6 32 256 32s256 93.1 256 208z"></path></svg>
+                    <span id="num-comments">-</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="tag-box"></div>
+<main>
+    <p>The intent of this notebook is to provide a practical guide for data scientists, and machine learning engineers to collaborate with clinicians, and to support real implementations of clinical indicator predictions. As such, explainability of the algorithms is required.</p>
+
+<p>Advances in NLP algorithms, as in the studies above, have made predicting clinical indicators more accurate, yet in order to effectively use machine learning models in a production setting, clinicians also need more insight into how these models work. They need to know that these algorithms make clinical sense before going to production. Clinicians and data scientists, need a way to evaluate realiablility, and explainability of models over time, as more data continues to be evaluated, and machine learning models are retrained.</p>
+
+<p>This notebook will take one of these clinical triage indicators, in-hospital mortality, and show how AWS services and infrastructure, along with pre-trained HuggingFace BERT models, can be used to train a binary classifier on text data, estimate a threshold value for triage, and then use Amazon Sagemaker Clarify to explain what admission note text is supporting the recommendations the algorithm is making.</p>
+
+<p>Resources :</p>
+
+<ul>
+  <li><a href="https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks/blob/main/workshops/Explain-hospital-triage-from-admission-notes/explain-hospital-triage-prediction-with-amazon-sagemaker-clarify.ipynb" target="_blank" rel="noopener noreferrer">Github</a></li>
+</ul>
+
+    <!-- see https://giscus.app/ -->
+    <div class="giscus" id="giscus" style="margin: 4rem auto;"></div>
+    <div id="related-box">
+        <span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><path d="M278.5 215.6L23 471c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l74.8-74.8c7.4 4.6 15.3 8.2 23.8 10.5C200.3 452.8 270 454.5 338 409.4c12.2-8.1 5.8-25.4-8.8-25.4l-16.1 0c-5.1 0-9.2-4.1-9.2-9.2c0-4.1 2.7-7.6 6.5-8.8l97.7-29.3c3.4-1 6.4-3.1 8.4-6.1c4.4-6.4 8.6-12.9 12.6-19.6c6.2-10.3-1.5-23-13.5-23l-38.6 0c-5.1 0-9.2-4.1-9.2-9.2c0-4.1 2.7-7.6 6.5-8.8l80.9-24.3c4.6-1.4 8.4-4.8 10.2-9.3C494.5 163 507.8 86.1 511.9 36.8c.8-9.9-3-19.6-10-26.6s-16.7-10.8-26.6-10C391.5 7 228.5 40.5 137.4 131.6C57.3 211.7 56.7 302.3 71.3 356.4c2.1 7.9 12 9.6 17.8 3.8L253.6 195.8c6.2-6.2 16.4-6.2 22.6 0c5.4 5.4 6.1 13.6 2.2 19.8z"></path></svg>
+            You May Also Like
+        </span>
+        <ul id="related-posts"></ul>
+    </div>
+</main>
+<div class="top-arrow">
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"></path></svg>
+</div>
+                
+            </div>
+        </div>
+        <div id="search">
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+
+    <div class="search-box">
+        <mark>Touch background to close</mark>
+        <div class="input-box">
+            <input id="search-input" type="search" tabindex="1" spellcheck="false" placeholder="Search...">
+            <button id="btn-clear">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"></path></svg>
+            </button>
+        </div>
+        <ul id="search-result"></ul>
+    </div>
+</div>
+    </body>
+    <script defer src="assets/js/background.js"></script>
+<script defer src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+    
+        <script src="assets/js/post.js"></script>
+        <link rel="preload" href="assets/css/highlight.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="assets/css/highlight.min.css"></noscript>
+        <script defer src="assets/js/highlight.min.js"></script>
+    
+    <script src="assets/js/common.js"></script>
+    <script defer>
+    var posts = [];
+
+    posts.push({
+            'title'    : "Index",
+            'path'     : "Blogs",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Index",
+            'path'     : "Workshops",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Index",
+            'path'     : "",
+            'type'     : "category",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/index.html",
+            'image'    : "",
+            'date'     : "1900-01-01"
+        });
+    posts.push({
+            'title'    : "Automate Retraining of Obesity Models using SageMaker Pipelines",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Automated-Retraining-of-Obesity-Models.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predict Average Medicaree Hospital Spending",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predicting Whether a Breast Cancer Sample is Benign or Malignant",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2021-12-20-Predict-BRCA-Malignancy.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Automate Retraining of Obesity Models using SageMaker Pipelines",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Automated-Retraining-of-Obesity-Models.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predict Average Medicaree Hospital Spending",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-Average-Medicare-Hospital-Spending.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Predicting Whether a Breast Cancer Sample is Benign or Malignant",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Train Multiple Models in Parallel Using SageMaker Training",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Train-Multiple-Model-in-Paralle-Using-SageMake.html",
+            'image'    : "",
+            'date'     : "2021-12-20"
+        });
+    posts.push({
+            'title'    : "Medicare Payment Prediction with Amazon SageMaker Autopilot",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-01-18-Healthcare-Payments-Prediction-SageMaker-AutoPilot.html",
+            'image'    : "",
+            'date'     : "2022-01-18"
+        });
+    posts.push({
+            'title'    : "Medical Imaging AI on AWS Workshop",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-05-22-Medical-Imaging-AI-on-AWS-Workshop.html",
+            'image'    : "",
+            'date'     : "2022-05-22"
+        });
+    posts.push({
+            'title'    : "Use Ground Truth Labeled Data to Train an Object Detection Model in Chest Xrays",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-18-Detect-Objects-in-Chest-X-Rays.html",
+            'image'    : "",
+            'date'     : "2022-07-18"
+        });
+    posts.push({
+            'title'    : "Medical Document Processing with Amazon Textract, Amazon Comprehend, and Amazon Comprehend Medical",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Process-Medical-Docs-with-AI-Services.html",
+            'image'    : "",
+            'date'     : "2022-07-21"
+        });
+    posts.push({
+            'title'    : "Summarize Scientific Documents",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-07-21-Summarize-Scientific-Documents.html",
+            'image'    : "",
+            'date'     : "2022-07-21"
+        });
+    posts.push({
+            'title'    : "Build and Deploy Many Models Leveraging Cancer Gene Expression Data With SageMaker Pipelines and SageMaker Multi-Model Endpoints",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-01-Cancer-Gene-Expression-SageMaker-Pipelines-Multi-Model-Endpoints.html",
+            'image'    : "",
+            'date'     : "2022-10-01"
+        });
+    posts.push({
+            'title'    : "Optimize Protein Folding Costs with OpenFold on AWS Batch",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-04-Optimize-Protein-Folding-Costs-with-OpenFold-on-AWS-Batch.html",
+            'image'    : "",
+            'date'     : "2022-10-04"
+        });
+    posts.push({
+            'title'    : "Awesome Protein Analysis on AWS",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-19-Awesome-Protein-Analysis-on-AWS.html",
+            'image'    : "",
+            'date'     : "2022-10-19"
+        });
+    posts.push({
+            'title'    : "Classify Skin Lesion Images",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2022-10-27-Classify-Ski-Lesion-Images.html",
+            'image'    : "",
+            'date'     : "2022-10-27"
+        });
+    posts.push({
+            'title'    : "Explain Hospital Triage from Admission Notes",
+            'path'     : "Workshops",
+            'type'     : "post",
+            'tags'     : "",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2023-02-23-Explain-hospital-triage-from-admission-notes.html",
+            'image'    : "",
+            'date'     : "2023-02-23"
+        });
+    posts.push({
+            'title'    : "Interact Conversationally with AWS HealthLake",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "GenAI, Amazon Bedrock, Amzon HealthLake",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2023-09-13-Interact-Conversationally-with-HealthLake.html",
+            'image'    : "assets/img/posts/image-one-Interact-Conversationally-with-AWS-HealthLake-1024x516.png",
+            'date'     : "2023-09-23"
+        });
+    posts.push({
+            'title'    : "Generative AI-Powered Clinical Intelligence - Safely Driving Better Outcomes",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Gen AI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-28-GenAI-Powered-Clinical-Intelligenence.html",
+            'image'    : "",
+            'date'     : "2024-02-28"
+        });
+    posts.push({
+            'title'    : "Use RAG for drug discovery with Knowledge Bases for Amazon Bedrock",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Gen AI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-29-Drug-Discovery-With-RAG-KBs.html",
+            'image'    : "",
+            'date'     : "2024-02-29"
+        });
+    posts.push({
+            'title'    : "Improving Patient Experience with Digital Front Door",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "GenAI, Amazon Bedrock",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-02-29-Imporving-Patient-Experience-with-Digital-Front-Door.html",
+            'image'    : "",
+            'date'     : "2024-02-29"
+        });
+    posts.push({
+            'title'    : "Efficiently fine-tune the ESM-2 protein language model with Amazon SageMaker",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Life Science, Amazon SageMaker",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-03-06-Efficiently-fine-tune-ESM-2.html",
+            'image'    : "assets/img/posts/ML-15387-amino-acid-chain.png",
+            'date'     : "2024-03-06"
+        });
+    posts.push({
+            'title'    : "Find the Next Blockbuster with NVIDIA BioNeMo Framework on Amazon SageMaker",
+            'path'     : "Blogs",
+            'type'     : "post",
+            'tags'     : "Life Science, Amazon SageMaker, Nvidia BioNeMo",
+            'url'      : "/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-03-11-NVIDIA-BioNemo-on-Amazon-SageMaker.html",
+            'image'    : "assets/img/posts/social-aws-lockup-1200x680-WHITE.jpg",
+            'date'     : "2024-03-11"
+        });
+    
+
+    searchPost(posts);
+
+    
+        searchRelated(posts);
+    
+</script>
+</html>
