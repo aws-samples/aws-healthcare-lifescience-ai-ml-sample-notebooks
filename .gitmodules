@@ -25,3 +25,6 @@
 [submodule "solutions/awesome-protein-analysis-on-aws"]
 	path = solutions/awesome-protein-analysis-on-aws
 	url = https://github.com/aws-samples/awesome-protein-analysis-on-aws.git
+[submodule "samples/generate-company-summary-via-generative-ai"]
+	path = samples/generate-company-summary-via-generative-ai
+	url = https://github.com/aws-samples/generate-company-summary-via-generative-ai
