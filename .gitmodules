@@ -29,5 +29,5 @@
 	path = samples/generate-company-summary-via-generative-ai
 	url = https://github.com/aws-samples/generate-company-summary-via-generative-ai
 [submodule "genomic-language-models/genomic-language-model-pretraining-with-healthomics-seq-store"]
-	path = genomic-language-models/genomic-language-model-pretraining-with-healthomics-seq-store
+	path = workshops/genomic-language-models/genomic-language-model-pretraining-with-healthomics-seq-store
 	url = https://github.com/aws-samples/genomic-language-model-pretraining-with-healthomics-seq-store
