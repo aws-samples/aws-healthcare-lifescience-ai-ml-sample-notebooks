@@ -88,7 +88,8 @@ def main(args):
         )
 
         # Start training
-        trainer.train()
+        with torch.autocast("cuda"):
+            trainer.train()
 
         gpu_memory_use = get_gpu_utilization()
         print(f"Max GPU memory use during training: {gpu_memory_use} MB")
