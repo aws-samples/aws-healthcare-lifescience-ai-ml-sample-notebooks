@@ -12,12 +12,10 @@ AWS Healthcare Life Sciences (HCLS) Artificial Intelligence/Machine Learning (AI
 
 The Immersion Day workshops may be used by in the context of [AWS Instructure-Led Labs](https://sagemaker-immersionday.workshop.aws/en/prerequisites/option1.html) or [self-paced labs](https://sagemaker-immersionday.workshop.aws/en/prerequisites/option2.html). Please see [here](https://sagemaker-immersionday.workshop.aws/en/prerequisites.html) for more information.
 
-
 ## Related Resources
 
 * The [SageMaker Immersion Day](https://github.com/aws-samples/amazon-sagemaker-immersion-day) provides many other useful workshops.
 * The [SageMaker sample code repository](https://github.com/aws/amazon-sagemaker-examples) provides more than 300 code samples for using SageMaker
-
 
 ## FAQ
 
@@ -27,7 +25,7 @@ Absolutely not! These workshops can benefit people at all levels, whether they a
 
 **How can I get started?**
 
-You can peruse this repository for notebooks that are relevant to you. 
+You can peruse this repository for notebooks that are relevant to you.
 
 **What workshops makes the most sense for me and my group?**
 
@@ -37,15 +35,13 @@ This depends on your teams familiarity with SageMaker. If the team is deeply fam
 
 Anyone is welcome to the workshop. We recommend that the customer have at least one developer present who will be actively working on business problems and can take away technical learnings that can be applied for their future work.
 
-
 **How can I get started?**
 
 Whether you are doing an [AWS Instructure-Led Labs](https://sagemaker-immersionday.workshop.aws/en/prerequisites/option1.html) or [self-paced labs](https://sagemaker-immersionday.workshop.aws/en/prerequisites/option2.html), we recommend that you begin by looking at the workshops and executing them to get an understanding of SageMaker and the AI/ML services work in the context of healthcare and life sciences.
 
 **How do I use these workshops?**
 
-The notebooks provided within these workshops are independent units and may be run on their own. Further instructions are provided within each specific directory. 
-
+The notebooks provided within these workshops are independent units and may be run on their own. Further instructions are provided within each specific directory.
 
 **What is the source of these workshops?**
 
@@ -53,11 +49,11 @@ Some of these workshops have been created by HCLS AI/ML team has written specifi
 
 **I am interested in workshops not listed on this repository.**
 
-The workshops for the HCLS AI/ML listed are generally focused on applications related to Health and Life Sciences. However, there is a wealth of more general information and public facing AWS provided notebooks that use non-HCLS data [here](https://github.com/awslabs/amazon-sagemaker-examples) and [here](https://sagemaker-immersionday.workshop.aws/). 
+The workshops for the HCLS AI/ML listed are generally focused on applications related to Health and Life Sciences. However, there is a wealth of more general information and public facing AWS provided notebooks that use non-HCLS data [here](https://github.com/awslabs/amazon-sagemaker-examples) and [here](https://sagemaker-immersionday.workshop.aws/).
 
 **I think I see a mistake or something I want changed in the repository**.
 
-Feel free to to submit a pull request detailing the issue. Please bear with us in if pull requests take longer than expected or are closed. 
+Feel free to to submit a pull request detailing the issue. Please bear with us in if pull requests take longer than expected or are closed.
 
 **How can I arrange an AWS Instructor-Led Immersion Day?**
 
@@ -70,4 +66,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
-

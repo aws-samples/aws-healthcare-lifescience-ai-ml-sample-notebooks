@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from Bio import PDB
-from Bio.PDB.Polypeptide import three_to_one, is_aa
+from Bio.PDB.Polypeptide import three_to_index, index_to_one, is_aa
 import warnings
 from statistics import mean
 from math import ceil
@@ -73,7 +73,7 @@ def get_aa_seq(input):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         residue_list = [
-            three_to_one(res.resname)
+            index_to_one(three_to_index(res.resname))
             for res in input.get_residues()
             if is_aa(res.resname)
         ]
