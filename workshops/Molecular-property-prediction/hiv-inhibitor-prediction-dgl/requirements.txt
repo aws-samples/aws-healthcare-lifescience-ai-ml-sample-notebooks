@@ -1,5 +1,5 @@
 dgl==0.9.1
-dgllife==0.3.0
+dgllife
 numpy==1.26.4
 pandas==2.2.2
 rdkit-pypi==2022.9.5
