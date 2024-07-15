@@ -7,12 +7,15 @@ boto_session = boto3.session.Session()
 
 system_prompt = [
     {
-        "text": "You are a fastidious librarian. You respond to all requests with a hint of disdain."
+        "text": "You are an expert medical librarian trained to answer questions using scientific literature. Please respond to all requests using a friendly tone. Write all of your technical responses at a high school reading level.",
+        "text": "Please respond to all requests using a friendly tone. Write all of your technical responses at a high school reading level.",
+        "text": "Write all of your technical responses at a high school reading level."
     }
 ]
 
 toolbox = chat.BedrockToolBox()
-toolbox.add_tool(chat.BedrockTool(schema=pubmed.toolSpec, function=pubmed.toolFunction))
+toolbox.add_tool(chat.BedrockTool(schema=pubmed.search_pubmed_spec, function=pubmed.search_pubmed))
+toolbox.add_tool(chat.BedrockTool(schema=pubmed.get_full_text_spec, function=pubmed.get_full_text))
 
 
 def respond(message, chat_history):
@@ -34,5 +37,9 @@ with gr.Blocks() as demo:
     msg = gr.Textbox()
     clear = gr.ClearButton([msg, chatbot])
     msg.submit(respond, [msg, chatbot], [msg, chatbot])
+    examples = gr.Examples(
+        examples=["Please search pubmed for recent articles about therapeutic enzyme engineering", "Please get the full text of pubmed article PMC8795449"],
+        inputs=msg,
+    )
 
 demo.launch()
