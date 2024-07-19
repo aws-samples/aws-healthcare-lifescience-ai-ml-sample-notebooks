@@ -65,48 +65,6 @@ def search_pubmed(query: str, count: int = 10, max_size: int = 8192, open_only: 
     except Exception as ex:
         return f"PubMed exception: {ex}"
 
-##### Get Fulltext Tool #####
-
-get_full_text_spec = {
-            'name': 'get_full_text',
-            'description': 'Get the full text of open pubmed central (PMC) articles from the registry of open data.',
-            'inputSchema': {
-                'json': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'string',
-                            'description': 'Pubmed central ID, for example 8795449 or PMC8795449'
-                        },
-                    },
-                    'required': ['id']
-                }
-            }
-        }
-
-def get_full_text(id: str) -> str:
-    """
-    Get the full text of open pubmed central (PMC) articles from the registry of open data.
-    """
-    
-    id = id if id.startswith("PMC") else "PMC" + id
-
-    S3_BUCKET_NAME = 'pmc-oa-opendata' 
-    S3_KEY = f'oa_comm/txt/all/{id}.txt'
-
-    s3_client = boto3.client('s3')
-
-    try:
-        s3_response_object = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_KEY)
-        fulltext = s3_response_object['Body'].read().decode()
-    except botocore.exceptions.ClientError as error:
-        if error.response['Error']['Code'] == 'NoSuchKey':
-            return f"Fulltext for article {id} not found in the PubMed Central (PMC) article dataset on AWS Data Exchange."
-
-    logger.info(f"Fulltext for article PMC{id}:")
-    logger.info(fulltext)
-    return fulltext
-
 class PubMed:
     """
     Calls pubmed API to fetch biomedical literature.

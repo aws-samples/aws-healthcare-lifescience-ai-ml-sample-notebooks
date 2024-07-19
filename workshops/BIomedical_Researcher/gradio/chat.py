@@ -80,7 +80,6 @@ def generate_text(
                 )
                 logger.info(f"Tool arguments:\n{tool_args}")
                 tool_response = toolbox.tools.get(tool_name)(**tool_args) or ""
-                # tool_response = getattr(toolbox, tool_name)(**tool_args) or ""
                 if tool_response:
                     tool_status = 'success'
                 else:
@@ -137,7 +136,6 @@ def gradio_to_bedrock(message, chat_history):
 
 def bedrock_to_gradio(messages):
     logger.info("Converting to gradio format")
-    # logger.info(messages)
 
     simple_messages = []
     for message in messages:
