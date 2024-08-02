@@ -15,7 +15,6 @@ system_prompt = [
 
 toolbox = chat.BedrockToolBox()
 toolbox.add_tool(chat.BedrockTool(schema=pubmed.search_pubmed_spec, function=pubmed.search_pubmed))
-toolbox.add_tool(chat.BedrockTool(schema=pubmed.get_full_text_spec, function=pubmed.get_full_text))
 
 
 def respond(message, chat_history):
