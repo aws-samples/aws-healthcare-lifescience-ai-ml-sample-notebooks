@@ -8,7 +8,7 @@
 # Deploy the AWS Batch Architecture for Protein Folding and Design in your AWS account
 ## Options
 # -b S3 bucket name to use for deployment staging
-# -n CloudFormation stack name
+# -s CloudFormation stack name
 # -r Deployment region
 # -v ID of VPC to use. If left empty, a new VPC will be created.
 # -w ID of first private subnet to use.
@@ -20,7 +20,7 @@
 # Example CMD
 # ./deploy.sh \
 #   -b "my-deployment-bucket" \
-#   -n "my-neptune-ml-stack" \
+#   -s "my-neptune-ml-stack" \
 #   -r "us-east-1" \
 #   -v "vpc-12345678" \
 #   -w "subnet-12345678" \
@@ -30,7 +30,7 @@
 #   -n "ml.g5.2xlarge"
 
 set -e
-unset -v BUCKET_NAME STACK_NAME REGION VPC PRIVATESUBNET1 PRIVATESUBNET2 PRIVATESUBNET3 PUBLICSUBNET \
+unset -v BUCKET_NAME STACK_NAME REGION VPC PRIVATESUBNET1 PRIVATESUBNET2 PUBLICSUBNET \
     DEFAULT_SECURITY_GROUP NOTEBOOK_INSTANCE_TYPE
 TIMESTAMP=$(date +%s)
 
@@ -61,7 +61,15 @@ done
 zip -r code.zip * -x .\*/\*
 aws s3 cp code.zip s3://$BUCKET_NAME/main/code.zip
 rm code.zip
-
+echo $BUCKET_NAME
+echo $STACK_NAME
+echo $REGION
+echo $VPC
+echo $PRIVATESUBNET1
+echo $PRIVATESUBNET2
+echo $PUBLICSUBNET
+echo $DEFAULT_SECURITY_GROUP
+echo $NOTEBOOK_INSTANCE_TYPE
 aws cloudformation package --template-file cfn/neptune-ml-nested-stack.json --output-template cfn/neptune-ml-nested-stack-packaged.yaml \
     --region $REGION --s3-bucket $BUCKET_NAME --s3-prefix cfn
 aws cloudformation deploy --template-file cfn/neptune-ml-nested-stack-packaged.yaml --capabilities CAPABILITY_IAM --stack-name $STACK_NAME \
