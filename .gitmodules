@@ -31,3 +31,6 @@
 [submodule "genomic-language-models/genomic-language-model-pretraining-with-healthomics-seq-store"]
 	path = workshops/genomic-language-models/genomic-language-model-pretraining-with-healthomics-seq-store
 	url = https://github.com/aws-samples/genomic-language-model-pretraining-with-healthomics-seq-store
+[submodule "samples/genomic-language-model-pretraining-with-healthomics-seq-store"]
+	path = samples/genomic-language-model-pretraining-with-healthomics-seq-store
+	url = https://github.com/aws-samples/genomic-language-model-pretraining-with-healthomics-seq-store
