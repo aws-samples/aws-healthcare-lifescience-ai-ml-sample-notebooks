@@ -7,25 +7,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>
     
-        Predicting Whether a Breast Cancer Sample is Benign or Malignant
+        An international study presenting a federated learning AI platform for pediatric brain tumors
     
 </title>
 <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Predicting Whether a Breast Cancer Sample is Benign or Malignant | Welcome to HCLS AI/ML Content Catalog</title>
+<title>An international study presenting a federated learning AI platform for pediatric brain tumors | Welcome to HCLS AI/ML Content Catalog</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta property="og:title" content="Predicting Whether a Breast Cancer Sample is Benign or Malignant">
+<meta property="og:title" content="An international study presenting a federated learning AI platform for pediatric brain tumors">
 <meta property="og:locale" content="en_US">
-<meta name="description" content="For this model, we will build, train and deploy a Multi-layer Perceptron using the sklearn library. This is a breast cancer diagnoses dataset, where, for each sample, the sample is diagnosed as “Benign” or “Malignant”. For each sample, a number of features are given as well. The source of the dataset is the UCI Machine Learning Repository.">
-<meta property="og:description" content="For this model, we will build, train and deploy a Multi-layer Perceptron using the sklearn library. This is a breast cancer diagnoses dataset, where, for each sample, the sample is diagnosed as “Benign” or “Malignant”. For each sample, a number of features are given as well. The source of the dataset is the UCI Machine Learning Repository.">
-<link rel="canonical" href="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html">
-<meta property="og:url" content="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html">
+<meta name="description" content="In a collaboration led by Stanford Health Department of Radiology, the AWS team worked with an international team of scientists to build FL-PedBrain, a federated learning platform developed for pediatric posterior fossa brain tumors, addressing the challenges of limited data sharing in medical AI studies. The platform enables joint tumor classification and segmentation across 19 international sites without direct data sharing. FL-PedBrain’s performance is comparable to centralized data training, with only slight decreases in classification and segmentation accuracy. Notably, the platform demonstrates improved segmentation performance on external sites and explores the impact of data heterogeneity and imbalances in real-world scenarios.">
+<meta property="og:description" content="In a collaboration led by Stanford Health Department of Radiology, the AWS team worked with an international team of scientists to build FL-PedBrain, a federated learning platform developed for pediatric posterior fossa brain tumors, addressing the challenges of limited data sharing in medical AI studies. The platform enables joint tumor classification and segmentation across 19 international sites without direct data sharing. FL-PedBrain’s performance is comparable to centralized data training, with only slight decreases in classification and segmentation accuracy. Notably, the platform demonstrates improved segmentation performance on external sites and explores the impact of data heterogeneity and imbalances in real-world scenarios.">
+<link rel="canonical" href="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-09-02-federated-learning-ai-platform-for-brain-tumors.html">
+<meta property="og:url" content="https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-09-02-federated-learning-ai-platform-for-brain-tumors.html">
 <meta property="og:site_name" content="Welcome to HCLS AI/ML Content Catalog">
 <meta property="og:type" content="article">
-<meta property="article:published_time" content="2021-12-20T00:00:00+00:00">
+<meta property="article:published_time" content="2024-06-28T00:00:00+00:00">
 <meta name="twitter:card" content="summary">
-<meta property="twitter:title" content="Predicting Whether a Breast Cancer Sample is Benign or Malignant">
+<meta property="twitter:title" content="An international study presenting a federated learning AI platform for pediatric brain tumors">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-12-20T00:00:00+00:00","datePublished":"2021-12-20T00:00:00+00:00","description":"For this model, we will build, train and deploy a Multi-layer Perceptron using the sklearn library. This is a breast cancer diagnoses dataset, where, for each sample, the sample is diagnosed as “Benign” or “Malignant”. For each sample, a number of features are given as well. The source of the dataset is the UCI Machine Learning Repository.","headline":"Predicting Whether a Breast Cancer Sample is Benign or Malignant","mainEntityOfPage":{"@type":"WebPage","@id":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/assets/img/logo.png"}},"url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Workshops/2021-12-20-Predict-BRCA-Malignancy.html"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-06-28T00:00:00+00:00","datePublished":"2024-06-28T00:00:00+00:00","description":"In a collaboration led by Stanford Health Department of Radiology, the AWS team worked with an international team of scientists to build FL-PedBrain, a federated learning platform developed for pediatric posterior fossa brain tumors, addressing the challenges of limited data sharing in medical AI studies. The platform enables joint tumor classification and segmentation across 19 international sites without direct data sharing. FL-PedBrain’s performance is comparable to centralized data training, with only slight decreases in classification and segmentation accuracy. Notably, the platform demonstrates improved segmentation performance on external sites and explores the impact of data heterogeneity and imbalances in real-world scenarios.","headline":"An international study presenting a federated learning AI platform for pediatric brain tumors","mainEntityOfPage":{"@type":"WebPage","@id":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-09-02-federated-learning-ai-platform-for-brain-tumors.html"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/assets/img/logo.png"}},"url":"https://aws-samples.github.io/aws-healthcare-lifescience-ai-ml-sample-notebooks/Blogs/2024-09-02-federated-learning-ai-platform-for-brain-tumors.html"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -90,14 +90,7 @@
             
                 <style>
                     .thumbnail {
-                        aspect-ratio: auto !important;
-                    }
-                    .transbox {
-                        transform: none;
-                        position: relative;
-                        margin: auto;
-                        left: 0;
-                        top: 0;
+                        background-image: url("assets/img/posts/fed_learning_v1.png");
                     }
                 </style>
             
@@ -258,11 +251,11 @@
     <p>
                 <a href="/aws-healthcare-lifescience-ai-ml-sample-notebooks">Home</a>
                 &gt;
-            <a>Workshops</a>
+            <a>Blogs</a>
                 &gt;
             
                 
-                    Predicting Whether a Breast Cancer Sample is Benign or Malignant
+                    An international study presenting a federated learning AI platform for pediatric brain tumors
                 
             </p>
 </div>
@@ -271,7 +264,7 @@
     <div class="thumbnail">
         <div class="transbox">
             
-                <span class="post-title">Predicting Whether a Breast Cancer Sample is Benign or Malignant</span>
+                <span class="post-title">An international study presenting a federated learning AI platform for pediatric brain tumors</span>
             
             <div class="post-info">
                 
@@ -283,7 +276,7 @@
                 <span class="info-box">
                     <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h80v56H48V192zm0 104h80v64H48V296zm128 0h96v64H176V296zm144 0h80v64H320V296zm80-48H320V192h80v56zm0 160v40c0 8.8-7.2 16-16 16H320V408h80zm-128 0v56H176V408h96zm-144 0v56H64c-8.8 0-16-7.2-16-16V408h80zM272 248H176V192h96v56z"></path></svg>
                     <span>
-                            2021-12-20
+                            2024-06-28
                         
                     </span>
                 </span>
@@ -296,14 +289,22 @@
         </div>
     </div>
 </div>
-<div class="tag-box"></div>
+<div class="tag-box">
+<span class="tag theme-0" contentid="Healthcare">
+            Healthcare
+        </span><span class="tag theme-1" contentid="Federated Machine Learning">
+            Federated Machine Learning
+        </span>
+</div>
 <main>
-    <p>For this model, we will build, train and deploy a Multi-layer Perceptron using the sklearn library. This is a breast cancer diagnoses dataset, where, for each sample, the sample is diagnosed as “Benign” or “Malignant”. For each sample, a number of features are given as well. The source of the dataset is the UCI Machine Learning Repository.</p>
+    <p>In a collaboration led by Stanford Health Department of Radiology, the AWS team worked with an international team of scientists to build FL-PedBrain, a federated learning platform developed for pediatric posterior fossa brain tumors, addressing the challenges of limited data sharing in medical AI studies. <br>
+The platform enables joint tumor classification and segmentation across 19 international sites without direct data sharing. FL-PedBrain’s performance is comparable to centralized data training, with only slight decreases in classification and segmentation accuracy. Notably, the platform demonstrates improved segmentation performance on external sites and explores the impact of data heterogeneity and imbalances in real-world scenarios.</p>
 
-<p><em>Resources</em> :</p>
+<p>Resources :</p>
 <ul>
-  <li><a href="https://github.com/aws-samples/aws-healthcare-lifescience-ai-ml-sample-notebooks/blob/main/workshops/Bring_Your_Own_Sklearn_Classifier/byo_mlp_classifier/sklearn_bring_your_own_MLP_Classifier_Breast_Diagnostic.ipynb" target="_blank" rel="noopener noreferrer">Github</a></li>
+  <li><a href="https://www.nature.com/articles/s41467-024-51172-5" target="_blank" rel="noopener noreferrer">Paper: An international study presenting a federated learning AI platform for pediatric brain tumors</a></li>
 </ul>
+
 
     <!-- see https://giscus.app/ -->
     <div class="giscus" id="giscus" style="margin: 4rem auto;"></div>
