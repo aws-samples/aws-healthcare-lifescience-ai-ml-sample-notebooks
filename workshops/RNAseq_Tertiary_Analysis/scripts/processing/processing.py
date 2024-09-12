@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 
 import boto3
 from sagemaker.session import Session
-from sagemaker.experiments.run import Run, load_run
+# from sagemaker.experiments.run import load_run
 
 boto_session = boto3.session.Session(region_name=os.environ["AWS_REGION"])
 sagemaker_session = Session(boto_session)
@@ -28,24 +28,6 @@ def main():
 
     ### Command line parser
     args, _ = _parse_args()
-    
-    with load_run(sagemaker_session=sagemaker_session) as run:
-        run.log_artifact(
-            name="hiseq_data_source", 
-            value=args.hiseq_url, 
-            is_output=False
-        )
-        run.log_artifact(
-            name="brca_clinical_data_source", 
-            value=args.brca_clinical_matrix_url, 
-            is_output=False
-        )
-        run.log_parameters(
-            {
-                "train_test_split_ratio": args.train_test_split_ratio,
-                "gene_count": args.gene_count,
-            }
-        )
         
     ### Load genotypes
     genom = pd.read_csv(args.hiseq_url, compression='gzip', sep="\t")

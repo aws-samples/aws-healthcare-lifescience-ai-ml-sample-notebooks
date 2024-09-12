@@ -3,13 +3,11 @@ import argparse
 import joblib
 import os
 import logging
+import mlflow
 import numpy as np
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, f1_score
-from sagemaker.experiments.run import Run, load_run
 from sagemaker.session import Session
-from time import strftime, sleep
 
 boto_session = boto3.session.Session(region_name=os.environ["AWS_REGION"])
 sagemaker_session = Session(boto_session)
@@ -75,6 +73,12 @@ def report_metrics(run, classifier, data_path, dataset_type="validation"):
     
 def main():
 
+    if 'MLFLOW_TRACKING_ARN' in os.environ:
+        # Set the Tracking Server URI using the ARN of the Tracking Server you created
+        mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_ARN'])
+        # Enable autologging in MLflow
+        mlflow.autolog()    
+
     logging.info("Extracting arguments")
     args, _ = _parse_args()
     logging.info(args)
@@ -101,17 +105,7 @@ def main():
     classifier.fit(train_np, train_labels)
 
     logging.info("Evaluating model")
-    with load_run(sagemaker_session=sagemaker_session) as run:
-        run.log_parameters({
-            "n_estimators": args.n_estimators,
-            "min_samples_leaf": args.min_samples_leaf,
-        })
-        if args.validation is not None:
-            data_path = os.path.join(args.validation, args.validation_file)
-            report_metrics(run, classifier, data_path, "validation")
-        if args.test is not None:
-            data_path = os.path.join(args.test, args.test_file)        
-            report_metrics(run, classifier, data_path, "test")
+    
 
     print("Saving model")
     path = os.path.join(args.model_dir, "model.joblib")

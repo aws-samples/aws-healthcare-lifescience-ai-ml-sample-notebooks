@@ -1,12 +1,11 @@
 import argparse
 import boto3
 import logging
+import mlflow
 import os
 import numpy as np
-import pandas as pd
 import pickle as pkl
 import xgboost as xgb
-from sagemaker.experiments.run import Run, load_run
 from sagemaker.session import Session
 from sklearn.metrics import accuracy_score, precision_score, f1_score
 
@@ -92,6 +91,12 @@ def _parse_args():
 
 if __name__ == "__main__":
 
+    if 'MLFLOW_TRACKING_ARN' in os.environ:
+        # Set the Tracking Server URI using the ARN of the Tracking Server you created
+        mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_ARN'])
+        # Enable autologging in MLflow
+        mlflow.autolog()
+
     logging.info("Extracting arguments")
     args, _ = _parse_args()
     logging.info(args)
@@ -149,25 +154,3 @@ if __name__ == "__main__":
     model_location = os.path.join(args.model_dir, "xgboost-model")
     pkl.dump(booster, open(model_location, "wb"))
     logging.info("Stored trained model at {}".format(model_location))
-
-    logging.info("Evaluating model")
-    with load_run(sagemaker_session=sagemaker_session) as run:
-        run.log_parameters(hyper_params_dict)       
-    
-        results = evals_result
-        for epoch, value in enumerate(results["train"]["error"]):
-            run.log_metric(
-                name="train:error", value=value, step=epoch
-            )
-
-        if args.validation is not None:
-            for epoch, value in enumerate(results["validation"]["error"]):
-                run.log_metric(
-                    name="validation:error", value=value, step=epoch
-                )
-            
-            report_metrics(run, booster, validation_labels, dval, "validation")
-
-        if args.test is not None: 
-            report_metrics(run, booster, test_labels, dtest, "test")
-        
