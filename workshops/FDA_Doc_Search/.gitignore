@@ -1,0 +1,5 @@
+.venv
+.env
+.scratch
+data
+.DS_Store

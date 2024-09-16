@@ -1,0 +1,53 @@
+
+.border-solid {
+   border: 3px solid;
+   border-width: 3px;
+   border-radius: 20px;
+   border-color: #f01716;
+}
+
+.border-gradient {
+   border-radius: 30px;
+   border: transparent solid 3px;
+
+}
+
+.border-gradient {
+   background: linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(135deg, #f01716, #f99f9f) border-box;
+}
+
+.generate-results {
+   padding: 20px;
+}
+
+.bedrock-title {
+   font-size: 3em;
+   font-weight: 700;
+   color: #f01716;
+}
+
+.logo-table {
+   display: grid; 
+   grid-template-columns: 80px 1fr;
+}
+
+.p-generate {
+   font-size: 1.5em;
+}
+
+.search-result-header {
+   font-size: 1.25em;
+   font-weight: 700;
+   color: #f01716
+}
+
+.filter-group .wrap {
+   display: grid !important;
+   grid-template-columns: 100%;
+}
+
+.header-bar {
+   border-bottom: 1px solid #dddddd;
+   padding: 5px;
+}
