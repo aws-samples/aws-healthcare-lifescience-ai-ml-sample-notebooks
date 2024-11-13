@@ -3,7 +3,8 @@ from biotite.sequence import ProteinSequence
 import biotite.sequence.align as align
 import biotite.sequence.graphics as graphics
 import biotite
-import evo_prot_grad
+
+# import evo_prot_grad
 import tempfile
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,6 +20,15 @@ import numpy as np
 from time import sleep
 from tqdm import tqdm
 import uuid
+
+# from evo_prot_grad.common.tokenizers import OneHotTokenizer
+# import evo_prot_grad.common.utils as utils
+
+from datasets import Dataset, DatasetDict
+from train import train
+from datasets import Dataset
+from transformers import AutoTokenizer
+import numpy as np
 
 
 def clean_structure(structure):
@@ -152,14 +162,19 @@ def batch_tokenize_mask(dataset, tokenizer, batch_size):
 
 
 def compute_pseudo_perplexity(
-    seqs, device="cuda", fp16=True, model_name="chandar-lab/AMPLIFY_120M_base"
+    seqs,
+    batch_size=1024,
+    compile=False,
+    device="cuda",
+    fp16=True,
+    model_name="chandar-lab/AMPLIFY_120M_base",
 ):
 
     model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    model = model.to(device)
-    dataloader = batch_tokenize_mask(seqs, tokenizer, 1)
-    total_token_len = len("".join(seqs)) + len(seqs) * 2
+    model.to(device)
+    torch.compile(model, disable=~compile)
+    dataloader = batch_tokenize_mask(seqs, tokenizer, batch_size)
 
     with torch.no_grad(), torch.autocast(
         device_type=device, dtype=torch.float16, enabled=fp16
@@ -168,7 +183,7 @@ def compute_pseudo_perplexity(
         torch.backends.cudnn.allow_tf32 = True
         losses = dict()
         loss_fn = torch.nn.CrossEntropyLoss(ignore_index=-100, reduction="none")
-        for label, x, y in tqdm(dataloader, total=total_token_len):
+        for label, x, y in tqdm(dataloader, total=len(seqs)):
             x = x.to(device)
             y = y.to(device)
             logits = model(x).logits
@@ -177,8 +192,7 @@ def compute_pseudo_perplexity(
     return [np.exp(np.mean(v)) for k, v in losses.items()]
 
 
-def submit_seqs_to_lab(df, delay=1, intro=False, error=0):
-
+def submit_seqs_to_lab(seqs, delay=0.1, intro=True, error=0):
     if intro:
         with open("img/science.txt", "r") as f:
             lines = f.readlines()
@@ -186,23 +200,24 @@ def submit_seqs_to_lab(df, delay=1, intro=False, error=0):
                 print(line, end="")
             print()
 
-    framework_mw = 10364.709
-    min_cdr_mw = 1825.661
-    max_cdr_mw = 5958.822
-    results = []
-    for seq in tqdm(df["seq"]):
-        cdr_mw = (
-            biotite.sequence.ProteinSequence(sequence=seq).get_molecular_weight()
-            - framework_mw
-        )
-        score = (cdr_mw - min_cdr_mw) / (max_cdr_mw - min_cdr_mw)
-        score += random.uniform(-error, error)
-        results.append(round(score, 4))
+    max_mw = biotite.sequence.ProteinSequence(
+        sequence="W"
+    ).get_molecular_weight() * len(seqs[0])
+    min_mw = biotite.sequence.ProteinSequence(
+        sequence="G"
+    ).get_molecular_weight() * len(seqs[0])
+
+    mw = seqs.map(
+        lambda x: biotite.sequence.ProteinSequence(sequence=x).get_molecular_weight()
+    )
+    scaled_mw = (mw - min_mw) / (max_mw - min_mw)
+    scaled_mw_w_error = scaled_mw.map(lambda x: x + random.uniform(-error, error))
+
+    for seq in tqdm(seqs):
         sleep(delay)
 
-    # return pd.DataFrame({"id": df["id"], "lab_result": results})
-    return pd.DataFrame({"lab_result": results}, index=df.index)
-    # return seqs
+    # return pd.DataFrame({"seq": seqs, "mw": mw, "scaled_mw": scaled_mw, "result": scaled_mw_w_error}, index=seqs.index)
+    return pd.DataFrame({"seq": seqs, "result": scaled_mw_w_error}, index=seqs.index)
 
 
 def format_seq(
@@ -258,40 +273,41 @@ def process_evolution_results(variants, scores=None):
         pd.DataFrame.from_dict(generated)
         .sort_values(by="score", ascending=False)
         .drop_duplicates(subset="seq")
-        .drop("score", axis=1)
         .set_index("id")
     )
 
 
-def run_evo_prot_grad(
-    wt_protein,  # path to wild type fasta file
-    output="all",  # return best, last, all variants
-    expert="esm",
-    parallel_chains=10,  # number of parallel chains to run
-    n_steps=20,  # number of MCMC steps per chain
-    max_mutations=-1,  # maximum number of mutations per variant
-    preserved_regions=None,  # leave the framework regions unchanged
-):
-    expert = evo_prot_grad.get_expert(
-        expert, scoring_strategy="pseudolikelihood_ratio", temperature=1.0
-    )
-    variants, scores = evo_prot_grad.DirectedEvolution(
-        wt_protein=wt_protein,  # path to wild type fasta file
-        output=output,  # return best, last, all variants
-        experts=[expert],  # list of experts to compose
-        parallel_chains=parallel_chains,  # number of parallel chains to run
-        n_steps=n_steps,  # number of MCMC steps per chain
-        max_mutations=max_mutations,  # maximum number of mutations per variant
-        preserved_regions=preserved_regions,  # leave the framework regions unchanged
-        verbose=False,  # print debug info to command line
-    )()
+# def run_evo_prot_grad(
+#     wt_protein,  # path to wild type fasta file
+#     output="all",  # return best, last, all variants
+#     expert="esm",
+#     parallel_chains=10,  # number of parallel chains to run
+#     n_steps=20,  # number of MCMC steps per chain
+#     max_mutations=-1,  # maximum number of mutations per variant
+#     preserved_regions=None,  # leave the framework regions unchanged
+#     scoring_strategy="pseudolikelihood_ratio",
+#     temperature=1.0,
+# ):
+#     expert = evo_prot_grad.get_expert(
+#         expert, scoring_strategy=scoring_strategy, temperature=temperature
+#     )
+#     variants, scores = evo_prot_grad.DirectedEvolution(
+#         wt_protein=wt_protein,  # path to wild type fasta file
+#         output=output,  # return best, last, all variants
+#         experts=[expert],  # list of experts to compose
+#         parallel_chains=parallel_chains,  # number of parallel chains to run
+#         n_steps=n_steps,  # number of MCMC steps per chain
+#         max_mutations=max_mutations,  # maximum number of mutations per variant
+#         preserved_regions=preserved_regions,  # leave the framework regions unchanged
+#         verbose=False,  # print debug info to command line
+#     )()
 
-    flat_variants = [j.replace(" ", "") for i in variants for j in i]
-    flat_scores = [k for i in scores for j in i for k in j]
-    return process_evolution_results(flat_variants, flat_scores)
+#     flat_variants = [j.replace(" ", "") for i in variants for j in i]
+#     flat_scores = [k for i in scores for j in i for k in j]
+#     return process_evolution_results(flat_variants, flat_scores)
 
 
-def random_evolution(
+def random_mutation(
     wt_protein, n_output_seqs=10, preserved_regions=[], max_mutations=10
 ):
     preserved_idx = []
@@ -300,14 +316,47 @@ def random_evolution(
 
     mutatable_idx = [i for i in range(len(wt_protein)) if i not in preserved_idx]
     output = []
-    for i in range(n_output_seqs):
+    for i in tqdm(range(round(n_output_seqs * 1.2))):
         new_protein = wt_protein
-        for i in range(random.randint(0, max_mutations)):
+        selected_idx = []
+        n_mutations = random.randint(1, max_mutations)
+        for i in range(n_mutations):
             idx = np.random.choice(mutatable_idx)
+            selected_idx.append(idx)
             aa = np.random.choice(list("ACDEFGHIKLMNPQRSTVWY"))
             new_protein = new_protein[:idx] + aa + new_protein[idx + 1 :]
-        output.append(new_protein)
-    return process_evolution_results(output)
+        output.append((new_protein, selected_idx))
+    generated = []
+    for seq, idx in output:
+        generated.append({"id": uuid.uuid4().hex[:6], "seq": seq, "mutation": idx})
+    print("Checking for duplicates")
+    return (
+        pd.DataFrame.from_dict(generated)
+        .drop_duplicates(subset="seq")[:n_output_seqs]
+        .set_index("id")
+    )
+
+
+def deep_mutation_scan(wt_protein, preserved_regions=[]):
+    preserved_idx = []
+    for region in preserved_regions:
+        preserved_idx += list(range(region[0], region[1]))
+
+    alphabet = list("ACDEFGHIKLMNPQRSTVWY")
+
+    mutatable_idx = [i for i in range(len(wt_protein)) if i not in preserved_idx]
+    output = []
+    for idx in mutatable_idx:
+        new_protein = wt_protein
+        for aa in alphabet:
+            new_protein = new_protein[:idx] + aa + new_protein[idx + 1 :]
+            output.append((new_protein, [idx]))
+    generated = []
+    for seq, idx in output:
+        generated.append({"id": uuid.uuid4().hex[:6], "seq": seq, "mutation": idx})
+    return (
+        pd.DataFrame.from_dict(generated).drop_duplicates(subset="seq").set_index("id")
+    )
 
 
 def run_scoring_model(seqs):
@@ -315,13 +364,15 @@ def run_scoring_model(seqs):
     return results.rename(columns={"lab_result": "prediction"})
 
 
-def format_cdrs(seq, cdrs):
+def format_cdrs(seq, cdrs, mask=False):
     output = ""
     for i, res in enumerate(seq):
         if i in cdrs:
             output += res
-        else:
+        elif mask:
             output += "-"
+        else:
+            output += res
     return format_seq(output, width=200, gap="", color_only=cdrs)
 
 
@@ -333,3 +384,56 @@ def pprint_generated_seqs(wt_seq, generated_seqs, cdrs):
         print(format_cdrs(record.seq, cdrs).ljust(130), end="\t")
         print()
     return None
+
+
+def train_scoring_model(
+    dataset,
+    model_name_or_path="facebook/esm2_t6_8M_UR50D",
+    sequence_column="seq",
+    results_column="result",
+    **kwargs,
+):
+    dataset = Dataset.from_pandas(dataset, preserve_index=False).train_test_split(
+        test_size=0.2, shuffle=True
+    )
+    return train(
+        model_name_or_path="facebook/esm2_t6_8M_UR50D",
+        raw_datasets=dataset,
+        text_column_names=sequence_column,
+        label_column_name=results_column,
+        per_device_eval_batch_size=256,
+        per_device_train_batch_size=256,
+        **kwargs,
+    )
+
+
+def run_scoring_model(model, seqs):
+    dataset = Dataset.from_pandas(seqs)
+    tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
+
+    def preprocess_function(
+        examples, text_column_names="seq", text_column_delimiter=" "
+    ):
+        # Tokenize the texts
+        result = tokenizer(
+            examples[text_column_names],
+            padding="max_length",
+            max_length=128,
+            truncation=True,
+        )
+        return {"id": examples["id"], "input_ids": result["input_ids"]}
+
+    predict_dataset = dataset.map(
+        preprocess_function,
+        batched=True,
+        desc="Running tokenizer on dataset",
+        remove_columns=dataset.column_names,
+    )
+
+    predictions = model.predict(
+        predict_dataset, metric_key_prefix="predict"
+    ).predictions
+    predictions = np.squeeze(predictions)
+    predictions
+
+    return predictions
