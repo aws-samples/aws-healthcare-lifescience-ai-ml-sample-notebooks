@@ -29,6 +29,11 @@ from train import train
 from datasets import Dataset
 from transformers import AutoTokenizer
 import numpy as np
+import os
+from torch.utils.data import DataLoader
+from transformers import EsmForSequenceClassification
+
+random.seed()
 
 
 def clean_structure(structure):
@@ -192,7 +197,7 @@ def compute_pseudo_perplexity(
     return [np.exp(np.mean(v)) for k, v in losses.items()]
 
 
-def submit_seqs_to_lab(seqs, delay=0.1, intro=True, error=0):
+def submit_seqs_to_lab(seqs, delay=0.05, intro=True):
     if intro:
         with open("img/science.txt", "r") as f:
             lines = f.readlines()
@@ -200,24 +205,31 @@ def submit_seqs_to_lab(seqs, delay=0.1, intro=True, error=0):
                 print(line, end="")
             print()
 
-    max_mw = biotite.sequence.ProteinSequence(
-        sequence="W"
-    ).get_molecular_weight() * len(seqs[0])
+    nanobody_seq = "EVQLVESGGGLVQPGGSLRLSCAASGRTFSYNPMGWFRQAPGKGRELVAAISRTGGSTYYPDSVEGRFTISRDNAKRMVYLQMNSLRAEDTAVYYCAAAGVRAEDGRVRTLPSEYTFWGQGTQVTVSS"
+    cdr1 = list(range(25, 32))
+    cdr2 = list(range(51, 57))
+    cdr3 = list(range(98, 117))
+    cdrs = cdr1 + cdr2 + cdr3
     min_mw = biotite.sequence.ProteinSequence(
-        sequence="G"
-    ).get_molecular_weight() * len(seqs[0])
+        "".join(["G" if i in cdrs else aa for i, aa in enumerate(nanobody_seq)])
+    ).get_molecular_weight()
+    max_mw = biotite.sequence.ProteinSequence(
+        "".join(["W" if i in cdrs else aa for i, aa in enumerate(nanobody_seq)])
+    ).get_molecular_weight()
 
-    mw = seqs.map(
-        lambda x: biotite.sequence.ProteinSequence(sequence=x).get_molecular_weight()
+    result = seqs.map(
+        lambda x: (
+            biotite.sequence.ProteinSequence(sequence=x).get_molecular_weight() - min_mw
+        )
+        / (max_mw - min_mw)
     )
-    scaled_mw = (mw - min_mw) / (max_mw - min_mw)
-    scaled_mw_w_error = scaled_mw.map(lambda x: x + random.uniform(-error, error))
+    # scaled_mw = (mw - min_mw) / (max_mw - min_mw)
+    # scaled_mw_w_error = scaled_mw.map(lambda x: x + random.uniform(-error, error))
 
     for seq in tqdm(seqs):
         sleep(delay)
 
-    # return pd.DataFrame({"seq": seqs, "mw": mw, "scaled_mw": scaled_mw, "result": scaled_mw_w_error}, index=seqs.index)
-    return pd.DataFrame({"seq": seqs, "result": scaled_mw_w_error}, index=seqs.index)
+    return pd.DataFrame({"seq": seqs, "result": result}, index=seqs.index)
 
 
 def format_seq(
@@ -330,11 +342,15 @@ def random_mutation(
     for seq, idx in output:
         generated.append({"id": uuid.uuid4().hex[:6], "seq": seq, "mutation": idx})
     print("Checking for duplicates")
-    return (
+    generated_seqs = (
         pd.DataFrame.from_dict(generated)
-        .drop_duplicates(subset="seq")[:n_output_seqs]
+        .drop_duplicates(subset="seq")
+        .sample(n=n_output_seqs)
         .set_index("id")
     )
+    generated_seqs["lab_result"] = np.NaN
+
+    return generated_seqs
 
 
 def deep_mutation_scan(wt_protein, preserved_regions=[]):
@@ -357,11 +373,6 @@ def deep_mutation_scan(wt_protein, preserved_regions=[]):
     return (
         pd.DataFrame.from_dict(generated).drop_duplicates(subset="seq").set_index("id")
     )
-
-
-def run_scoring_model(seqs):
-    results = submit_seqs_to_lab(seqs, delay=0, intro=False, error=0.2)
-    return results.rename(columns={"lab_result": "prediction"})
 
 
 def format_cdrs(seq, cdrs, mask=False):
@@ -397,19 +408,23 @@ def train_scoring_model(
         test_size=0.2, shuffle=True
     )
     return train(
-        model_name_or_path="facebook/esm2_t6_8M_UR50D",
+        model_name_or_path=model_name_or_path,
         raw_datasets=dataset,
         text_column_names=sequence_column,
         label_column_name=results_column,
-        per_device_eval_batch_size=256,
-        per_device_train_batch_size=256,
         **kwargs,
     )
 
 
-def run_scoring_model(model, seqs):
+def run_scoring_model(seqs, model_path="output", batch_size=1024):
     dataset = Dataset.from_pandas(seqs)
-    tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = EsmForSequenceClassification.from_pretrained(
+        model_path,
+        device_map="auto",
+        num_labels=1,
+    ).eval()
+    tokenizer = AutoTokenizer.from_pretrained("output")
 
     def preprocess_function(
         examples, text_column_names="seq", text_column_delimiter=" "
@@ -421,19 +436,25 @@ def run_scoring_model(model, seqs):
             max_length=128,
             truncation=True,
         )
-        return {"id": examples["id"], "input_ids": result["input_ids"]}
+        return {"input_ids": result["input_ids"]}
 
     predict_dataset = dataset.map(
         preprocess_function,
         batched=True,
         desc="Running tokenizer on dataset",
         remove_columns=dataset.column_names,
+        num_proc=os.cpu_count(),
     )
+    predict_dataset.set_format("torch")
 
-    predictions = model.predict(
-        predict_dataset, metric_key_prefix="predict"
-    ).predictions
-    predictions = np.squeeze(predictions)
-    predictions
+    dataloader = DataLoader(predict_dataset, batch_size=batch_size)
+    tmp = []
+    with torch.inference_mode():
+        for batch in tqdm(dataloader):
+            batch = batch["input_ids"].to(device=model.device)
+            predictions = model(batch).logits
+            predictions = torch.squeeze(predictions)
+            tmp.append(predictions.cpu())
+    all_predictions = torch.cat(tmp)
 
-    return predictions
+    return all_predictions

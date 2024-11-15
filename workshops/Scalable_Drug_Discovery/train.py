@@ -17,18 +17,24 @@
 # You can also adapt this script on your own text classification task. Pointers for this are left as comments.
 
 import argparse
+
 import logging
 import os
 import random
 import sys
+
 import datasets
+import evaluate
+import numpy as np
 from datasets import Value, load_dataset
 
 import transformers
 from transformers import (
+    AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
+    EvalPrediction,
     Trainer,
     default_data_collator,
     set_seed,
@@ -37,6 +43,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 from transformers import TrainingArguments
+import torch
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -94,7 +101,7 @@ def train(
         handlers=[logging.StreamHandler(sys.stdout)],
     )
 
-    log_level = logging.WARN
+    log_level = logging.ERROR
     logger.setLevel(log_level)
     datasets.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.set_verbosity(log_level)
@@ -137,6 +144,7 @@ def train(
                 label_column_name, "label"
             )
 
+    num_labels = 1
     # regession requires float as label type, let's cast it if needed
     for split in raw_datasets.keys():
         if raw_datasets[split].features["label"].dtype not in ["float32", "float64"]:
@@ -229,22 +237,7 @@ def train(
             train_dataset = train_dataset.select(range(max_train_samples))
 
     if do_eval:
-        if (
-            "validation" not in raw_datasets
-            and "validation_matched" not in raw_datasets
-        ):
-            if "test" not in raw_datasets and "test_matched" not in raw_datasets:
-                raise ValueError(
-                    "--do_eval requires a validation or test dataset if validation is not defined."
-                )
-            else:
-                logger.warning(
-                    "Validation dataset not found. Falling back to test dataset for validation."
-                )
-                eval_dataset = raw_datasets["test"]
-        else:
-            eval_dataset = raw_datasets["validation"]
-
+        eval_dataset = raw_datasets["test"]
         if max_eval_samples is not None:
             max_eval_samples = min(len(eval_dataset), max_eval_samples)
             eval_dataset = eval_dataset.select(range(max_eval_samples))
@@ -254,7 +247,6 @@ def train(
         for index in random.sample(range(len(train_dataset)), 3):
             logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
 
-    # metric = evaluate.load("mse", cache_dir=cache_dir)
     logger.info("Using mean squared error (mse) as regression score.")
 
     # Data collator will default to DataCollatorWithPadding when the tokenizer is passed to Trainer, so we change it if
@@ -285,6 +277,7 @@ def train(
         weight_decay=0.01,
         push_to_hub=False,
         use_cpu=use_cpu,
+        # load_best_model_at_end=True,
     )
 
     # Initialize our Trainer
@@ -317,7 +310,6 @@ def train(
 
     # Evaluation
     if do_eval:
-        logger.info("*** Evaluate ***")
         metrics = trainer.evaluate(eval_dataset=eval_dataset)
         max_eval_samples = (
             max_eval_samples if max_eval_samples is not None else len(eval_dataset)
@@ -328,7 +320,7 @@ def train(
 
     kwargs = {"finetuned_from": model_name_or_path, "tasks": "text-classification"}
 
-    trainer.create_model_card(**kwargs)
+    # trainer.create_model_card(**kwargs)
 
     return trainer
 
