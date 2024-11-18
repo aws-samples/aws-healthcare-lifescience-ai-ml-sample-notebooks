@@ -24,17 +24,13 @@ import random
 import sys
 
 import datasets
-import evaluate
-import numpy as np
 from datasets import Value, load_dataset
 
 import transformers
 from transformers import (
-    AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
-    EvalPrediction,
     Trainer,
     default_data_collator,
     set_seed,
@@ -43,7 +39,6 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 from transformers import TrainingArguments
-import torch
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -274,6 +269,7 @@ def train(
         evaluation_strategy="epoch",
         save_strategy="no",
         optim=optim,
+        report_to="none",
         weight_decay=0.01,
         push_to_hub=False,
         use_cpu=use_cpu,
