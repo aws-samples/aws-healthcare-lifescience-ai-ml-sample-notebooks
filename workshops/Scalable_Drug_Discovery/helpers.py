@@ -33,6 +33,9 @@ import os
 from torch.utils.data import DataLoader
 from transformers import EsmForSequenceClassification
 
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
 random.seed()
 
 
@@ -168,7 +171,7 @@ def batch_tokenize_mask(dataset, tokenizer, batch_size):
 
 def compute_pseudo_perplexity(
     seqs,
-    batch_size=1024,
+    batch_size=512,
     compile=False,
     device="cuda",
     fp16=True,
@@ -197,7 +200,7 @@ def compute_pseudo_perplexity(
     return [np.exp(np.mean(v)) for k, v in losses.items()]
 
 
-def submit_seqs_to_lab(seqs, delay=0.05, intro=True):
+def submit_seqs_to_lab(seqs, delay=0.1, intro=True):
     if intro:
         with open("img/science.txt", "r") as f:
             lines = f.readlines()
@@ -320,7 +323,11 @@ def process_evolution_results(variants, scores=None):
 
 
 def random_mutation(
-    wt_protein, n_output_seqs=10, preserved_regions=[], max_mutations=10
+    wt_protein,
+    n_output_seqs=10,
+    preserved_regions=[],
+    max_mutations=10,
+    annotate_hist=False,
 ):
     preserved_idx = []
     for region in preserved_regions:
@@ -349,6 +356,32 @@ def random_mutation(
         .set_index("id")
     )
     generated_seqs["lab_result"] = np.NaN
+
+    scores = submit_seqs_to_lab(generated_seqs["seq"], delay=0, intro=False)[
+        "result"
+    ].sort_values(ascending=False)
+    print(f"Top score values: {scores[:5]}")
+    n_bins = 50
+    fig, axs = plt.subplots()
+    # We can set the number of bins with the *bins* keyword argument.
+    axs.hist(scores, bins=n_bins)
+
+    if annotate_hist:
+        axs.annotate(
+            "We want these!",
+            xy=(0.5, 1500),
+            xytext=(0.48, 2000),
+            arrowprops=dict(facecolor="black"),
+        )
+        # Create a Rectangle patch
+        rect = patches.Rectangle(
+            (0.45, 0), 0.08, 1500, linewidth=1, edgecolor="r", facecolor="none"
+        )
+        axs.add_patch(rect)
+    plt.title("(Secret) Factor X Distribution of Mutants")
+    plt.xlabel("Factor X Score")
+    plt.ylabel("Number of Mutants")
+    plt.show()
 
     return generated_seqs
 
