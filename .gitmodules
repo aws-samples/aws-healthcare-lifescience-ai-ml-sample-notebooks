@@ -34,3 +34,6 @@
 [submodule "samples/genomic-language-model-pretraining-with-healthomics-seq-store"]
 	path = samples/genomic-language-model-pretraining-with-healthomics-seq-store
 	url = https://github.com/aws-samples/genomic-language-model-pretraining-with-healthomics-seq-store
+[submodule "solutions/drug-discovery-workflows"]
+	path = solutions/drug-discovery-workflows
+	url = https://github.com/aws-samples/drug-discovery-workflows
