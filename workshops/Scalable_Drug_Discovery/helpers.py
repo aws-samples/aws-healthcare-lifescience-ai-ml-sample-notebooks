@@ -36,6 +36,15 @@ from transformers import EsmForSequenceClassification
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+import math
+from transformers import AutoModel
+from transformers import AutoTokenizer
+from evo_prot_grad.common.tokenizers import OneHotTokenizer
+from torch.nn.functional import log_softmax
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+
 random.seed()
 
 
@@ -491,3 +500,70 @@ def run_scoring_model(seqs, model_path="output", batch_size=1024):
     all_predictions = torch.cat(tmp)
 
     return all_predictions
+
+
+def compute_pseudo_log_likelihood_ratio(
+    wt_seq,
+    seqs,
+    batch_size=512,
+    compile=False,
+    device="cuda",
+    fp16=True,
+    model_name="chandar-lab/AMPLIFY_120M_base",
+):
+
+    model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    oh_tokenizer = OneHotTokenizer(
+        list(dict(sorted(tokenizer.vocab.items(), key=lambda item: item[1])).keys())
+    )
+
+    model.to(device)
+    torch.compile(model, disable=~compile)
+    dataloader = DataLoader(seqs, batch_size=batch_size)
+
+    with torch.inference_mode(), torch.autocast(
+        device_type=device, dtype=torch.float16, enabled=fp16
+    ):
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+        print("Analyzing wildtype sequence")
+        wt_oh = oh_tokenizer([wt_seq]).to(model.device)
+        wt_input_ids = tokenizer(wt_seq, return_tensors="pt")["input_ids"].to(
+            model.device
+        )
+        wt_logits = model(wt_input_ids).logits[:, 1:-1, :]
+        wt_pll = wt_oh * log_softmax(wt_logits, dim=-1)
+
+        print("Analyzing mutant sequences")
+        mt_oh_list = []
+        mt_logit_list = []
+        for mt_seqs in tqdm(dataloader, total=math.ceil(len(seqs) / batch_size)):
+            mt_oh = oh_tokenizer(mt_seqs).to(model.device)
+            mt_oh_list.append(mt_oh)
+            mt_input_ids = tokenizer(mt_seqs, return_tensors="pt").to(model.device)
+            mt_logits = model(mt_input_ids["input_ids"]).logits[:, 1:-1, :]
+            mt_logit_list.append(mt_logits)
+
+        mt_ohs = torch.cat(mt_oh_list)
+        mt_logits = torch.cat(mt_logit_list)
+    pllrs = (
+        (
+            wt_pll.repeat(mt_ohs.shape[0], 1, 1)
+            - mt_ohs * torch.nn.functional.log_softmax(mt_logits, dim=-1)
+        )
+        .sum(dim=[1, 2])
+        .cpu()
+    )
+
+    n_bins = 50
+    _, axs = plt.subplots()
+    axs.hist(pllrs, bins=n_bins)
+    plt.axvline(x=1, color="r")
+    plt.title("Predicted mutation likelihood relative to caplacizumab")
+    plt.xlabel("Pseudo-log likelihood ratio")
+    plt.ylabel("Number of Mutants")
+    plt.show()
+
+    return pllrs
