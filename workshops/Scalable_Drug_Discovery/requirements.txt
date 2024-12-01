@@ -2,6 +2,7 @@ accelerate==0.34.2
 biotite
 bitsandbytes==0.44.1
 datasets==3.0.1
+evo-prot-grad==0.2
 jsonlines
 matplotlib==3.9.2
 py3dmol
