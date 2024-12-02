@@ -175,6 +175,12 @@ def train(
         ignore_mismatched_sizes=ignore_mismatched_sizes,
     )
 
+    for param in model.parameters():
+        param.requires_grad = False
+
+    for param in model.classifier.parameters():
+        param.requires_grad = True
+
     # Padding strategy
     if pad_to_max_length:
         padding = "max_length"
@@ -265,8 +271,9 @@ def train(
         gradient_checkpointing=use_gradient_checkpointing,
         logging_dir="logs",
         logging_strategy="steps",
-        logging_steps=16,
-        evaluation_strategy="epoch",
+        logging_steps=4,
+        evaluation_strategy="steps",
+        eval_steps=8,
         save_strategy="no",
         optim=optim,
         report_to="none",

@@ -558,7 +558,7 @@ def compute_pseudo_log_likelihood_ratio(
     )
 
     n_bins = 50
-    _, axs = plt.subplots()
+    fig, axs = plt.subplots()
     axs.hist(pllrs, bins=n_bins)
     plt.axvline(x=1, color="r")
     plt.title("Predicted mutation likelihood relative to caplacizumab")
@@ -567,3 +567,13 @@ def compute_pseudo_log_likelihood_ratio(
     plt.show()
 
     return pllrs
+
+
+def uniform_crossover(parents, n=1):
+    child_list = []
+    for i in tqdm(range(n)):
+        child = ""
+        for i in range(len(parents[0])):
+            child += random.choice([a[i] for a in parents])
+        child_list.append(child)
+    return child_list
