@@ -444,18 +444,29 @@ def train_scoring_model(
     model_name_or_path="facebook/esm2_t6_8M_UR50D",
     sequence_column="seq",
     results_column="result",
+    log_metrics=False,
     **kwargs,
 ):
     dataset = Dataset.from_pandas(dataset, preserve_index=False).train_test_split(
         test_size=0.2, shuffle=True
     )
-    return train(
+    trainer = train(
         model_name_or_path=model_name_or_path,
         raw_datasets=dataset,
         text_column_names=sequence_column,
         label_column_name=results_column,
+        log_metrics=log_metrics,
         **kwargs,
     )
+
+    log_history = pd.DataFrame(trainer.state.log_history)
+    train_loss = log_history[log_history['loss'].notna()][['step','loss']]
+    eval_loss = log_history[log_history['eval_loss'].notna()][['step','eval_loss']]
+    
+    plt.plot(train_loss['step'], train_loss['loss'])
+    plt.plot(eval_loss['step'], eval_loss['eval_loss'])
+
+    return trainer
 
 
 def run_scoring_model(seqs, model_path="output", batch_size=1024):
