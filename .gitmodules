@@ -37,3 +37,6 @@
 [submodule "solutions/drug-discovery-workflows"]
 	path = solutions/drug-discovery-workflows
 	url = https://github.com/aws-samples/drug-discovery-workflows
+[submodule "samples/text-to-sparql-on-neptune-with-uniprot"]
+	path = samples/text-to-sparql-on-neptune-with-uniprot
+	url = git@github.com:aws-samples/text-to-sparql-on-neptune-with-uniprot.git
