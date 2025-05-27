@@ -1,7 +1,0 @@
-sagemaker-datawrangler==0.3.8
-boto3==1.26.30
-matplotlib==3.6.2
-pandas==1.5.2
-sagemaker==2.123.0
-scikit-learn==1.2.0
-s3fs==0.4.2
