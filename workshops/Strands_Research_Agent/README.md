@@ -7,6 +7,7 @@ This guide will help you understand the basic concepts of Strands Agents and get
 - Python 3.10 or later
 - AWS account configured with appropriate permissions
 - Basic understanding of Python programming
+- Access to the Anthropic Claude 3.5 Haiku and Claude 3.7 Sonnet models in Amazon Bedrock
 
 ## Installation
 
