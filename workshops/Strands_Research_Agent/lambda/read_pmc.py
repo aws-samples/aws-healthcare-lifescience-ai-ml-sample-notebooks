@@ -1,18 +1,23 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
-from dataclasses import dataclass
 import json
 import logging
-# import os
 import re
-from strands import tool
-# from typing import Optional, Any, Dict
+from dataclasses import dataclass
 from typing import Optional
 
+import boto3
+from botocore.exceptions import ClientError, NoCredentialsError
+from strands import tool
 
-logger = logging.getLogger("read_pubmed")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Set the root logger level
+    format="%(levelname)s | %(name)s | %(message)s",
+    handlers=[logging.StreamHandler()],
+)
+
+logger = logging.getLogger("read_pmc_tool")
 
 CONTENT_CHARACTER_LIMIT = 100000
 
@@ -718,7 +723,7 @@ def _fallback_summarization(content: str, pmcid: str) -> str:
 
 
 @tool
-def read_pubmed(pmcid: str, source: str = None) -> dict:
+def read_pmc_tool(pmcid: str, source: str = None) -> dict:
     """
     Retrieve full text of PMC article from S3.
 
@@ -729,7 +734,7 @@ def read_pubmed(pmcid: str, source: str = None) -> dict:
     Returns:
         dict: Object with "source" (DOI/URL) and "text" (content/summary) keys
     """
-    logger.info(f"Starting read_pubmed for PMCID: {pmcid}")
+    logger.info(f"Starting read_pmc_tool for PMCID: {pmcid}")
 
     try:
         # Step 1: Validate PMCID format
@@ -875,7 +880,7 @@ def read_pubmed(pmcid: str, source: str = None) -> dict:
 
     except Exception as e:
         # Handle any unexpected errors gracefully
-        logger.error(f"Unexpected error in read_pubmed: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error in read_pmc_tool: {str(e)}", exc_info=True)
         response = _create_error_response(
             "error",
             f"An unexpected error occurred while processing {pmcid}: {str(e)}",
@@ -888,30 +893,7 @@ def read_pubmed(pmcid: str, source: str = None) -> dict:
         }
 
 
-# def _get_api_key_params(base_params: Dict[str, Any]) -> Dict[str, Any]:
-#     """
-#     Add NCBI API key to request parameters if available.
-
-#     Args:
-#         base_params: Base request parameters dictionary
-
-#     Returns:
-#         Parameters dictionary with API key added if available
-#     """
-#     api_key = os.getenv("NCBI_API_KEY")
-
-#     # If API key exists and is not empty, add it to parameters
-#     if api_key and api_key.strip():
-#         # Create a new dictionary to avoid modifying the original
-#         params_with_key = base_params.copy()
-#         params_with_key["api_key"] = api_key
-#         return params_with_key
-
-#     # Return original parameters if no API key or empty string
-#     return base_params
-
-
 if __name__ == "__main__":
     # Example usage for testing
-    result = read_pubmed("PMC6033041")
+    result = read_pmc_tool("PMC6033041")
     print(result)
