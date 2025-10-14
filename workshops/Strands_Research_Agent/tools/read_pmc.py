@@ -19,7 +19,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("read_pmc_tool")
 
-CONTENT_CHARACTER_LIMIT = 100000
+CONTENT_CHARACTER_LIMIT = 50000  # Reduced from 100000 to avoid timeout issues
 
 # Note: Logging configuration is handled by the main application
 
@@ -556,11 +556,11 @@ def _summarize_content(content: str, pmcid: str) -> str:
     try:
         # Initialize Amazon Bedrock client
         try:
-            # Configure extended timeout for long-running AI synthesis requests
+            # Configure reasonable timeout for AI synthesis requests
             bedrock_config = Config(
-                read_timeout=3600,  # 3600 seconds (1 hour) for long AI processing
-                connect_timeout=60,  # 60 seconds for connection establishment
-                retries={"max_attempts": 3, "mode": "standard"},
+                read_timeout=120,  # 120 seconds (2 minutes) - reduced from 1 hour
+                connect_timeout=30,  # 30 seconds for connection establishment
+                retries={"max_attempts": 2, "mode": "standard"},  # Reduced retries
             )
 
             boto_session = boto3.Session()
@@ -628,12 +628,17 @@ def _summarize_content(content: str, pmcid: str) -> str:
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(f"Bedrock API error for {pmcid} ({error_code}): {error_message}")
+        logger.warning(f"Bedrock API error for {pmcid} ({error_code}): {error_message}, using fallback")
+        # Fall back to truncated content
+        return _fallback_summarization(content, pmcid)
+
+    except TimeoutError as e:
+        logger.warning(f"Timeout during summarization for {pmcid}: {str(e)}, using fallback")
         # Fall back to truncated content
         return _fallback_summarization(content, pmcid)
 
     except Exception as e:
-        logger.error(f"Unexpected error during summarization for {pmcid}: {str(e)}")
+        logger.warning(f"Unexpected error during summarization for {pmcid}: {str(e)}, using fallback")
         # Fall back to truncated content
         return _fallback_summarization(content, pmcid)
 
