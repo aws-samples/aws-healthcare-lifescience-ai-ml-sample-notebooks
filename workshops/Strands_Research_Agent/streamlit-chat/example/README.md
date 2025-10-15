@@ -15,13 +15,30 @@ A life science research assistant that searches and analyzes PubMed Central (PMC
 - `read_pmc_tool`: Retrieve and summarize full-text articles
 
 ## Deploy
-
+1- Change directory
 ```bash
+cd workshops/Strands_Research_Agent/streamlit-chat/example 
+```
+2- Install dev dependencies using uv
+```bash
+uv sync --dev
+```
+
+3- Configure and Deploy the Agent
+```bash
+cd example
+
 # Configure the agent
 uv run agentcore configure -e agent.py
 
 # Deploy to AgentCore Runtime
 uv run agentcore launch --auto-update-on-conflict
+cd ..
+```
+
+4- Run the application
+```bash
+uv run streamlit run app.py
 ```
 
 ## Usage
