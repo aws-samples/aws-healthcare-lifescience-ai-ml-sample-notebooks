@@ -17,7 +17,7 @@ A life science research assistant that searches and analyzes PubMed Central (PMC
 ## Deploy
 1- Change directory
 ```bash
-cd workshops/Strands_Research_Agent/streamlit-chat/example 
+cd workshops/Strands_Research_Agent/streamlit-chat 
 ```
 2- Install dev dependencies using uv
 ```bash
@@ -33,11 +33,11 @@ uv run agentcore configure -e agent.py
 
 # Deploy to AgentCore Runtime
 uv run agentcore launch --auto-update-on-conflict
-cd ..
 ```
 
 4- Run the application
 ```bash
+cd ..
 uv run streamlit run app.py
 ```
 
