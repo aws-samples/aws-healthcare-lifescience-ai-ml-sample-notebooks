@@ -5,6 +5,7 @@ import logging
 import os
 from typing import Any, Dict, List
 from xml.etree.ElementTree import Element
+import re
 
 import httpx
 from defusedxml import ElementTree as ET
@@ -67,6 +68,16 @@ def search_pmc(
             "content": [{"text": "Error: query parameter is required"}]
         }
 
+    Note: To search by the relative date of publication, add one of the following date filters to the end of the search query INCLUDING THE DOUBLE QUOTES:
+
+    - AND "last X days"[dp]
+    - AND "last X months"[dp]
+    - AND "last X years"[dp]
+
+    where X is the number of days, months, or years immediately preceding today's date.
+
+    For example
+
     Examples:
         # Basic search with citation ranking
         input = {
@@ -76,9 +87,9 @@ def search_pmc(
         }
         result = search_pmc(input)
 
-        # Advanced search with temporal filters
+        # Advanced search with relative publication date
         input = {
-            "query": "mRNA vaccine COVID-19 AND \"last 2 years\"[dp]",
+            "query": 'mRNA vaccine COVID-19 AND "last 2 years"[dp]',
             "max_results": 200,
             "max_records": 20,
             "rerank": "referenced_by"
@@ -418,8 +429,18 @@ def _get_api_key_params(base_params: Dict[str, Any]) -> Dict[str, Any]:
     return base_params
 
 
+def _add_quotes_to_search_filter(query: str) -> str:
+    """Search for any filter clauses in the search query and add any missing quotation marks."""
+
+    return re.sub(r"AND ([a-zA-Z0-9 ]+?)(\[[a-z]+?\])", r'AND "\1"\2', query)
+
+
 def _build_search_query(query: str) -> str:
     """Build the search query with appropriate filters."""
+
+    # Add double-quotes around date filters
+    query = _add_quotes_to_search_filter(query)
+
     if COMMERCIAL_USE_ONLY:
         license_filter = " AND (cc0 license[Filter] OR pmc cc by license[Filter] OR cc by-sa license[Filter] OR cc by-nd license[Filter])"
     else:
