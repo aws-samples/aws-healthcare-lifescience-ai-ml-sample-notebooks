@@ -442,7 +442,7 @@ def _build_search_query(query: str) -> str:
     query = _add_quotes_to_search_filter(query)
 
     if COMMERCIAL_USE_ONLY:
-        license_filter = " AND (cc0 license[Filter] OR pmc cc by license[Filter] OR cc by-sa license[Filter] OR cc by-nd license[Filter])"
+        license_filter = " AND (cc0 license[Filter] OR cc by license[Filter] OR cc by-sa license[Filter] OR cc by-nd license[Filter])"
     else:
         license_filter = " AND cc license[Filter]"
 
