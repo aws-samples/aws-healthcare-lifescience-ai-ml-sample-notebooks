@@ -117,9 +117,10 @@ def _parse_args():
 
 def main():
 
-    if "MLFLOW_TRACKING_ARN" in os.environ:
+    if "MLFLOW_TRACKING_URI" in os.environ:
         # Set the Tracking Server URI using the ARN of the Tracking Server you created
-        mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_ARN"])
+        # mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_ARN"])
+        mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
         # Enable autologging in MLflow
         mlflow.autolog()
 
